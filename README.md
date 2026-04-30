@@ -1,50 +1,63 @@
-# Welcome to your Expo app 👋
+# Naija Whot Mobile (Expo)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Mobile-first Nigerian Whot app built with React Native, Expo, and Expo Router.
 
-## Get started
+## What this app is now
 
-1. Install dependencies
+- Native mobile project scaffolded with Expo.
+- Routing powered by Expo Router (`app/` directory).
+- Ready for gameplay logic + UI implementation.
+- Single-player direction (human vs AI), with multiplayer-ready architecture.
 
-   ```bash
-   npm install
-   ```
+## Stack
 
-2. Start the app
+- Expo SDK 54
+- React Native + React 19
+- Expo Router
+- React Native Reanimated
+- React Native Gesture Handler
+- TypeScript + ESLint
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run locally
 
 ```bash
-npm run reset-project
+npm install
+npm run start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Then launch on a target device:
 
-## Learn more
+- `npm run android`
+- `npm run ios`
+- `npm run web` (optional preview)
 
-To learn more about developing your project with Expo, look at the following resources:
+## Lint
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm run lint
+```
 
-## Join the community
+## Mobile game scope
 
-Join our community of developers creating universal apps.
+- Human vs computer gameplay.
+- Nigerian Whot action cards:
+  - `1` Hold On
+  - `2` Pick Two
+  - `5` Pick Three
+  - `8` Suspension
+  - `14` General Market
+  - `20` Crown (wild shape request)
+- Turn events, basic sound/haptics, and card transitions.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Immediate next build steps
+
+1. Add domain modules (`engine`, `ai`, shared `types`).
+2. Build `useGameController` for turn orchestration.
+3. Implement core UI screens in `app/`.
+4. Add Reanimated interactions and haptics.
+5. Add rule parity tests and AI behavior tests.
+
+## References
+
+- Rules overview: [Pagat Whot rules](https://www.pagat.com/com/whot.html)
+- Engine/API reference: [mykeels/whot](https://github.com/mykeels/whot)

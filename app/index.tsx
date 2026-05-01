@@ -11,7 +11,7 @@ import { WinModal, type RoundResult } from "../components/game/WinModal";
 import { APP_BG, BORDER, SURFACE_ALT } from "../components/game/theme";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Card } from "@/src/store/gameStore";
 
 export default function Index() {
@@ -93,20 +93,23 @@ export default function Index() {
   const needLabel = requestedShape ? SHAPE_LABELS[requestedShape] : "Any";
   const skipsLabel = skipNextPlayer ? "1" : "0";
   const isHumanTurn = turn === "human" && !winner && !awaitingShapeChoice;
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: APP_BG }}>
+    <SafeAreaView edges={["top", "left", "right"]} className="flex-1" style={{ backgroundColor: APP_BG }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: 14,
-          paddingVertical: 14,
-          paddingBottom: 28,
+          paddingTop: 14,
+          paddingBottom: insets.bottom + 28,
           gap: 14,
         }}
       >
         <HeaderBar
           turn={turn}
+          pendingPick={pendingPick}
+          requestedShape={requestedShape ? SHAPE_LABELS[requestedShape] : null}
           onRestart={handleRestart}
           onSettings={() => controlCenterRef.current?.present()}
         />

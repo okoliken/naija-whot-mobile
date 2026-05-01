@@ -32,7 +32,7 @@ export function HeaderBar({ turn, onRestart, onSettings }: HeaderBarProps) {
           </View>
         </View>
         <View className="flex-row gap-2">
-          <IconButton icon="☾" onPress={onSettings} />
+          <IconButton icon="⚙" onPress={onSettings} />
           <IconButton icon="↻" onPress={onRestart} />
         </View>
       </View>

@@ -1,9 +1,9 @@
-import { Player, type Card } from "@/src/store/gameStore";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { type Card } from "@/src/store/gameStore";
+import { Pressable, ScrollView, View, Text} from "react-native";
 import { CardFront } from "./CardFront";
 import { Section } from "./Section";
 import { isPlayableCard } from "./isPlayableCard";
-import { BORDER, BRAND, SURFACE_ALT } from "./theme";
+import { SURFACE_ALT } from "./theme";
 
 type PlayerSectionProps = {
   humanHand: Card[];
@@ -12,10 +12,7 @@ type PlayerSectionProps = {
   pendingPick: number;
   isHumanTurn: boolean;
   message: string;
-  winner: Player | null;
   onPlayCard: (index: number) => void;
-  onDraw: () => void;
-  onRestart: () => void;
 };
 
 export function PlayerSection({
@@ -25,10 +22,7 @@ export function PlayerSection({
   pendingPick,
   isHumanTurn,
   message,
-  winner,
   onPlayCard,
-  onDraw,
-  onRestart,
 }: PlayerSectionProps) {
   return (
     <Section>
@@ -59,34 +53,11 @@ export function PlayerSection({
         })}
       </ScrollView>
 
-      <View className="mt-3 gap-3">
-        <View className="rounded-lg border px-4 py-2" style={{ borderColor: BORDER, backgroundColor: SURFACE_ALT }}>
-          <Text numberOfLines={2} className="text-xs font-medium text-zinc-300">
-            {message || "Waiting for your move"}
-          </Text>
-        </View>
-
-        <View className="flex-row gap-3">
-          <Pressable
-            className="flex-1 rounded-lg border px-4 py-3 active:opacity-80"
-            style={{ borderColor: BORDER, backgroundColor: isHumanTurn ? SURFACE_ALT : SURFACE_ALT + "80" }}
-            onPress={onDraw}
-            disabled={!isHumanTurn}
-          >
-            <Text className="text-center text-sm font-semibold text-zinc-100">
-              Draw {pendingPick > 0 ? pendingPick : 1}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            className="rounded-lg px-4 py-3 active:opacity-80"
-            style={{ backgroundColor: BRAND }}
-            onPress={onRestart}
-          >
-            <Text className="text-sm font-semibold text-zinc-50">{winner ? "Again" : "Reset"}</Text>
-          </Pressable>
-        </View>
-      </View>
+      {message ? (
+        <Text numberOfLines={2} className="mt-2 text-center text-xs text-zinc-400">
+          {message}
+        </Text>
+      ) : null}
     </Section>
   );
 }

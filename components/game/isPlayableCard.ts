@@ -8,6 +8,8 @@ export function isPlayableCard(
 ) {
   if (!topCard) return false;
   const legal = canPlay(card, topCard, requestedShape);
-  const blockedByPick = pendingPick > 0 && card.value !== 2 && card.value !== 5;
+  const blockedByPick =
+    pendingPick > 0 &&
+    (topCard.value === 14 ? card.value !== 14 : card.value !== 2 && card.value !== 5);
   return legal && !blockedByPick;
 }

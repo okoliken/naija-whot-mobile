@@ -1,7 +1,7 @@
 import { pickComputerMove } from "@/services/aiPlayer";
 import { isMarketDepletedError } from "@/services/whotEngine";
 import { create } from "zustand";
-import { AI_DIFFICULTY } from "./game/constants";
+import type { Difficulty } from "@/types/game";
 import {
   SHAPES,
   SHAPE_LABELS,
@@ -14,7 +14,6 @@ import {
   createInitialRoundState,
   fromEngineShape,
   resolveByExhaustion,
-  runGeneralMarketDraw,
   syncHands,
   toAiCard,
   toUiCard,
@@ -26,8 +25,11 @@ export type { Card, GameState, Player, Shape } from "./game/types";
 
 export const useGameStore = create<GameState>((set, get) => ({
   ...createInitialRoundState(),
+  difficulty: "hard" as Difficulty,
 
   startGame: () => set(createInitialRoundState()),
+
+  setDifficulty: (d) => set({ difficulty: d }),
 
   drawHumanCard: () => {
     const state = get();
@@ -89,6 +91,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ ...state, message: "You must defend with Pick Three or draw." });
       return;
     }
+    if (gameRuntime.pendingPenalty === 14 && state.pendingPick > 0 && selectedCard.value !== 14) {
+      set({ ...state, message: "You must defend with General Market or draw." });
+      return;
+    }
     if (!canPlayByEngineRules(selectedCard, state.topCard, state.requestedShape)) {
       set({ ...state, message: "You cannot play that card." });
       return;
@@ -124,28 +130,26 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (played.value === 1) {
       turn = "human";
       message = "You played Hold On.";
+      requestedShape = null;
     } else if (played.value === 2) {
       pendingPick += 2;
       gameRuntime.pendingPenalty = 2;
       message = "You played Pick Two.";
+      requestedShape = null;
     } else if (played.value === 5) {
       pendingPick += 3;
       gameRuntime.pendingPenalty = 5;
       message = "You played Pick Three.";
+      requestedShape = null;
     } else if (played.value === 8) {
       gameRuntime.pendingSkipCount += 1;
       skipNextPlayer = "computer";
       message = "You played Suspension.";
+      requestedShape = null;
     } else if (played.value === 14) {
-      const marketResult = runGeneralMarketDraw("computer");
-      const reSynced = syncHands();
-      if (!marketResult.ok) {
-        const exhaustion = resolveByExhaustion({ ...state, ...reSynced });
-        set({ ...state, ...reSynced, ...exhaustion });
-        return;
-      }
-      message = "You played General Market. Computer picked 1 from market.";
-      Object.assign(synced, reSynced);
+      pendingPick += 1;
+      gameRuntime.pendingPenalty = 14;
+      message = "You played General Market.";
       requestedShape = null;
     } else {
       requestedShape = null;
@@ -236,11 +240,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         requestedShape: state.requestedShape ? SHAPE_TO_ENGINE[state.requestedShape] : null,
         opponentHandSize: state.humanHand.length,
         pendingPickCount: state.pendingPick,
-        difficulty: AI_DIFFICULTY,
+        difficulty: state.difficulty,
       },
       (candidate, top, needed) => {
         if (gameRuntime.pendingPenalty === 2 && state.pendingPick > 0) return candidate.value === 2;
         if (gameRuntime.pendingPenalty === 5 && state.pendingPick > 0) return candidate.value === 5;
+        if (gameRuntime.pendingPenalty === 14 && state.pendingPick > 0) return candidate.value === 14;
         return canPlayAi(candidate, top, needed);
       },
     );
@@ -312,15 +317,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       skipNextPlayer = "human";
       message = "Computer played Suspension.";
     } else if (played.value === 14) {
-      const marketResult = runGeneralMarketDraw("human");
-      const reSynced = syncHands();
-      if (!marketResult.ok) {
-        const exhaustion = resolveByExhaustion({ ...state, ...reSynced });
-        set({ ...state, ...reSynced, ...exhaustion });
-        return;
-      }
-      message = "Computer played General Market. You picked 1 from market.";
-      Object.assign(synced, reSynced);
+      pendingPick += 1;
+      gameRuntime.pendingPenalty = 14;
+      message = "Computer played General Market.";
       requestedShape = null;
     } else if (played.value !== 20) {
       requestedShape = null;

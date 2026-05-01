@@ -1,12 +1,18 @@
 import { SHAPE_LABELS, gameShapes, useGameStore } from "@/src/store/gameStore";
-import { HeaderBar } from "@/app/components/game/HeaderBar";
-import { OpponentSection } from "@/app/components/game/OpponentSection";
-import { PlayerSection } from "@/app/components/game/PlayerSection";
-import { TableSection } from "@/app/components/game/TableSection";
-import { APP_BG, BORDER, SURFACE, SURFACE_ALT } from "@/app/components/game/theme";
-import { useEffect } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { CardFlyOverlay } from "../components/game/CardFlyOverlay";
+import { ControlCenterModal } from "../components/game/ControlCenterModal";
+import { HeaderBar } from "../components/game/HeaderBar";
+import { OpponentSection } from "../components/game/OpponentSection";
+import { PlayerSection } from "../components/game/PlayerSection";
+import { ShapePickerModal } from "../components/game/ShapePickerModal";
+import { TableSection } from "../components/game/TableSection";
+import { WinModal, type RoundResult } from "../components/game/WinModal";
+import { APP_BG, BORDER, SURFACE_ALT } from "../components/game/theme";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Pressable, ScrollView, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import type { Card } from "@/src/store/gameStore";
 
 export default function Index() {
   const {
@@ -23,12 +29,60 @@ export default function Index() {
     message,
     gameStarted,
     winner,
+    difficulty,
     startGame,
     drawHumanCard,
     playHumanCard,
     chooseShape,
     runComputerTurn,
+    setDifficulty,
   } = useGameStore();
+
+  const shapePickerRef = useRef<BottomSheetModal>(null);
+  const controlCenterRef = useRef<BottomSheetModal>(null);
+
+  // Game history
+  const roundCountRef = useRef(1);
+  const [history, setHistory] = useState<RoundResult[]>([]);
+  const prevWinner = useRef<typeof winner>(null);
+
+  useEffect(() => {
+    if (winner && winner !== prevWinner.current) {
+      prevWinner.current = winner;
+      setHistory((h) => [
+        ...h,
+        {
+          round: roundCountRef.current,
+          winner,
+          humanCards: humanHand.length,
+          computerCards: computerHand.length,
+        },
+      ]);
+    }
+    if (!winner) prevWinner.current = null;
+  }, [winner, humanHand.length, computerHand.length]);
+
+  // Card fly animation
+  const isFirstCard = useRef(true);
+  const prevTopCardId = useRef<string | null>(null);
+  const [flyCard, setFlyCard] = useState<Card | null>(null);
+  const [flyOrigin, setFlyOrigin] = useState<"human" | "computer">("human");
+
+  useEffect(() => {
+    if (!topCard || topCard.id === prevTopCardId.current) return;
+    prevTopCardId.current = topCard.id;
+    if (isFirstCard.current) { isFirstCard.current = false; return; }
+    setFlyOrigin(turn === "computer" ? "human" : "computer");
+    setFlyCard(topCard);
+  }, [topCard, turn]);
+
+  const handleRestart = useCallback(() => {
+    isFirstCard.current = true;
+    prevTopCardId.current = null;
+    setFlyCard(null);
+    roundCountRef.current += 1;
+    startGame();
+  }, [startGame]);
 
   useEffect(() => {
     if (turn !== "computer" || !gameStarted || winner || awaitingShapeChoice) return;
@@ -51,7 +105,11 @@ export default function Index() {
           gap: 14,
         }}
       >
-        <HeaderBar turn={turn} onRestart={startGame} />
+        <HeaderBar
+          turn={turn}
+          onRestart={handleRestart}
+          onSettings={() => controlCenterRef.current?.present()}
+        />
 
         <OpponentSection turn={turn} count={computerHand.length} />
 
@@ -62,6 +120,7 @@ export default function Index() {
           needLabel={needLabel}
           pendingPick={pendingPick}
           skipsLabel={skipsLabel}
+          onDraw={drawHumanCard}
         />
 
         <PlayerSection
@@ -71,36 +130,55 @@ export default function Index() {
           pendingPick={pendingPick}
           isHumanTurn={isHumanTurn}
           message={message}
-          winner={winner}
           onPlayCard={playHumanCard}
-          onDraw={drawHumanCard}
-          onRestart={startGame}
         />
-
-        {awaitingShapeChoice ? (
-          <View className="gap-2 rounded-2xl border px-4 py-3" style={{ borderColor: "#7a5a1f", backgroundColor: SURFACE }}>
-            <Text className="text-sm text-amber-300">Choose shape</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {gameShapes.map((shape) => (
-                <Pressable
-                  key={shape}
-                  className="rounded-lg border px-3 py-2 active:opacity-85"
-                  style={{ borderColor: BORDER, backgroundColor: SURFACE_ALT }}
-                  onPress={() => chooseShape(shape)}
-                >
-                  <Text className="text-xs text-zinc-100">{SHAPE_LABELS[shape]}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-        ) : null}
-
-        {winner ? (
-          <Text className="text-center text-base font-semibold text-emerald-400">
-            {winner === "human" ? "You won this round." : "Computer won this round."}
-          </Text>
-        ) : null}
       </ScrollView>
+
+      <CardFlyOverlay card={flyCard} origin={flyOrigin} />
+
+      {/* Shape picker trigger — shown whenever a Crown card is waiting for a shape */}
+      {awaitingShapeChoice ? (
+        <Pressable
+          onPress={() => shapePickerRef.current?.present()}
+          style={{
+            position: "absolute",
+            bottom: 32,
+            alignSelf: "center",
+            left: 24,
+            right: 24,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: BORDER,
+            backgroundColor: SURFACE_ALT,
+            paddingVertical: 14,
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ fontFamily: "CormorantGaramond_700Bold_Italic", fontSize: 20, color: "#f7f2e9" }}>
+            Choose a shape ♛
+          </Text>
+        </Pressable>
+      ) : null}
+
+      <ShapePickerModal
+        ref={shapePickerRef}
+        shapes={gameShapes}
+        onChoose={chooseShape}
+      />
+
+      <WinModal
+        visible={!!winner}
+        winner={winner ?? "human"}
+        history={history}
+        onRestart={handleRestart}
+      />
+
+      <ControlCenterModal
+        ref={controlCenterRef}
+        difficulty={difficulty}
+        onDifficultyChange={setDifficulty}
+        history={history}
+      />
     </SafeAreaView>
   );
 }

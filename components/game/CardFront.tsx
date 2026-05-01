@@ -9,7 +9,7 @@ const SHAPE_GLYPH: Record<string, string> = {
   cross: "✚",
   star: "★",
   square: "■",
-  whot: "W",
+  whot: "♛",
 };
 
 const CENTER_GLYPH_CLASS: Record<Card["shape"], string> = {
@@ -27,7 +27,7 @@ const CORNER_GLYPH_CLASS: Record<Card["shape"], string> = {
   cross: "text-[11px]",
   star: "text-[12px]",
   square: "text-[11px]",
-  whot: "text-[10px]",
+  whot: "text-[11px]",
 };
 
 function renderCardTitle(card: Card): string {
@@ -53,6 +53,7 @@ export function CardFront({ card, rotated }: CardFrontProps) {
   const fontRegular = { fontFamily: "Inter_400Regular" } as const;
   const fontSemiBold = { fontFamily: "Inter_600SemiBold" } as const;
   const fontBold = { fontFamily: "Inter_700Bold" } as const;
+  const fontScript = { fontFamily: "CormorantGaramond_700Bold_Italic" } as const;
 
   return (
     <View
@@ -89,18 +90,22 @@ export function CardFront({ card, rotated }: CardFrontProps) {
 
         <View className="flex-1 items-center justify-center">
           {isWhot ? (
-            <View className="items-center">
-              <Text style={fontSemiBold} className="font-serif text-[10px] tracking-[1px] text-[#6e1018]">
-                WHOT
-              </Text>
-              <Text style={fontBold} className="font-serif text-[32px] leading-none text-[#6e1018]">
+            <View className="items-center gap-0.5">
+              <View className="flex-row gap-1">
+                {["●", "▲", "■", "✚", "★"].map((g) => (
+                  <Text key={g} style={fontSemiBold} className="text-[8px] text-[#6e1018]/35">
+                    {g}
+                  </Text>
+                ))}
+              </View>
+              <Text style={fontScript} className="text-[46px] leading-none text-[#6e1018]">
                 Whot
               </Text>
-              <Text style={fontRegular} className="mt-0.5 font-serif text-[7px] tracking-[0.4px] text-[#6e1018]/85">
-                A GAME FOR
+              <Text style={fontSemiBold} className="text-[7px] tracking-[2px] text-[#6e1018]/55">
+                W H O T
               </Text>
-              <Text style={fontRegular} className="font-serif text-[7px] tracking-[0.4px] text-[#6e1018]/85">
-                EVERYONE
+              <Text style={fontRegular} className="mt-0.5 text-center text-[6px] tracking-[0.5px] text-[#6e1018]/45">
+                A GAME FOR EVERYONE
               </Text>
             </View>
           ) : (

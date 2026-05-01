@@ -6,9 +6,10 @@ import { type Player } from "@/src/store/gameStore";
 type HeaderBarProps = {
   turn: Player;
   onRestart: () => void;
+  onSettings: () => void;
 };
 
-export function HeaderBar({ turn, onRestart }: HeaderBarProps) {
+export function HeaderBar({ turn, onRestart, onSettings }: HeaderBarProps) {
   const titleFont = { fontFamily: "Inter_700Bold" } as const;
 
   return (
@@ -31,7 +32,7 @@ export function HeaderBar({ turn, onRestart }: HeaderBarProps) {
           </View>
         </View>
         <View className="flex-row gap-2">
-          <IconButton icon="☾" />
+          <IconButton icon="☾" onPress={onSettings} />
           <IconButton icon="↻" onPress={onRestart} />
         </View>
       </View>

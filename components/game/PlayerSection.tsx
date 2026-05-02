@@ -3,7 +3,7 @@ import { Pressable, ScrollView, View, Text} from "react-native";
 import { CardFront } from "./CardFront";
 import { Section } from "./Section";
 import { isPlayableCard } from "./isPlayableCard";
-import { SURFACE_ALT } from "./theme";
+import { useAppTheme } from "./ThemeContext";
 
 type PlayerSectionProps = {
   humanHand: Card[];
@@ -24,11 +24,14 @@ export function PlayerSection({
   message,
   onPlayCard,
 }: PlayerSectionProps) {
+  const theme = useAppTheme();
   return (
     <Section>
       <View className="mb-3 flex-row items-baseline justify-between gap-3">
-        <Text className="text-xl font-bold text-zinc-50">Your Hand</Text>
-        <Text className="text-xs font-medium text-zinc-500">{humanHand.length} {humanHand.length === 1 ? "card" : "cards"}</Text>
+        <Text style={{ fontSize: 20, fontWeight: "700", color: theme.textPrimary }}>Your Hand</Text>
+        <Text style={{ fontSize: 12, fontWeight: "500", color: theme.textMuted }}>
+          {humanHand.length} {humanHand.length === 1 ? "card" : "cards"}
+        </Text>
       </View>
 
       <ScrollView
@@ -54,7 +57,7 @@ export function PlayerSection({
       </ScrollView>
 
       {message ? (
-        <Text numberOfLines={2} className="mt-2 text-center text-xs text-zinc-400">
+        <Text numberOfLines={2} style={{ marginTop: 8, textAlign: "center", fontSize: 12, color: theme.textSecondary }}>
           {message}
         </Text>
       ) : null}

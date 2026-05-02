@@ -1,5 +1,6 @@
 import { Pressable, Text } from "react-native";
-import { BORDER, SURFACE_ALT } from "./theme";
+
+import { useAppTheme } from "./ThemeContext";
 
 type IconButtonProps = {
   icon: string;
@@ -7,13 +8,14 @@ type IconButtonProps = {
 };
 
 export function IconButton({ icon, onPress }: IconButtonProps) {
+  const theme = useAppTheme();
   return (
     <Pressable
       onPress={onPress}
       className="h-10 w-10 items-center justify-center rounded-xl border active:opacity-80"
-      style={{ borderColor: BORDER, backgroundColor: SURFACE_ALT }}
+      style={{ borderColor: theme.border, backgroundColor: theme.surfaceAlt }}
     >
-      <Text className="text-base text-zinc-200">{icon}</Text>
+      <Text style={{ fontSize: 16, color: theme.iconGlyph }}>{icon}</Text>
     </Pressable>
   );
 }

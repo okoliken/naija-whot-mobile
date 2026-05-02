@@ -2,7 +2,7 @@ import { SHAPE_LABELS, type GameState } from "@/src/store/gameStore";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { forwardRef, useCallback, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
-import { BORDER, SURFACE } from "./theme";
+import { useAppTheme } from "./ThemeContext";
 
 type Shape = Exclude<GameState["requestedShape"], null>;
 
@@ -29,6 +29,7 @@ const GLYPH_SIZE: Record<Shape, number> = {
 
 export const ShapePickerModal = forwardRef<BottomSheetModal, Props>(
   function ShapePickerModal({ shapes, onChoose }, ref) {
+    const theme = useAppTheme();
     const internalRef = useRef<BottomSheetModal>(null);
     const sheetRef = (ref as React.RefObject<BottomSheetModal>) ?? internalRef;
 
@@ -48,13 +49,12 @@ export const ShapePickerModal = forwardRef<BottomSheetModal, Props>(
         snapPoints={["32%"]}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
-        backgroundStyle={{ backgroundColor: SURFACE }}
-        handleIndicatorStyle={{ backgroundColor: BORDER, width: 36, height: 3 }}
+        backgroundStyle={{ backgroundColor: theme.surface }}
+        handleIndicatorStyle={{ backgroundColor: theme.border, width: 36, height: 3 }}
       >
         <BottomSheetView style={{ paddingHorizontal: 24, paddingBottom: 44, paddingTop: 8 }}>
           <Text
-            style={fontScript}
-            className="mb-6 text-center text-[28px] leading-none text-zinc-100"
+            style={[fontScript, { marginBottom: 24, textAlign: "center", fontSize: 28, lineHeight: 28, color: theme.textPrimary }]}
           >
             Choose a shape
           </Text>

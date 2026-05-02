@@ -12,9 +12,25 @@ import {
   CormorantGaramond_700Bold_Italic,
 } from "@expo-google-fonts/cormorant-garamond";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { StatusBar } from "expo-status-bar";
+import type { ReactNode } from "react";
+import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+import { ThemeProvider, useAppTheme } from "../components/game/ThemeContext";
+
 import "../global.css";
+
+function ThemedRoot({ children }: { children: ReactNode }) {
+  const t = useAppTheme();
+  const scheme = useColorScheme();
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: t.appBg }}>
+      <StatusBar style={scheme === "light" ? "dark" : "light"} />
+      {children}
+    </GestureHandlerRootView>
+  );
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -30,10 +46,12 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#0b0e14" }}>
-      <BottomSheetModalProvider>
-        <Stack screenOptions={{ headerShown: false }} />
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+    <ThemeProvider>
+      <ThemedRoot>
+        <BottomSheetModalProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </BottomSheetModalProvider>
+      </ThemedRoot>
+    </ThemeProvider>
   );
 }

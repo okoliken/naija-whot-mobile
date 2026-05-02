@@ -9,9 +9,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { IconButton } from "./IconButton";
-import { BORDER, SURFACE_ALT } from "./theme";
+import { useAppTheme } from "./ThemeContext";
 
 type HeaderBarProps = {
+  winner: Player | null;
   turn: Player;
   pendingPick: number;
   requestedShape: string | null;
@@ -19,20 +20,16 @@ type HeaderBarProps = {
   onSettings: () => void;
 };
 
-type ChipVariant = "your-turn" | "penalty" | "shape" | "cpu";
-
-const CHIP_STYLES: Record<ChipVariant, { bg: string; border: string; text: string }> = {
-  "your-turn": { bg: "#0c2a14", border: "#166534", text: "#86efac" },
-  penalty:     { bg: "#3d0a0e", border: "#7f1d1d", text: "#fca5a5" },
-  shape:       { bg: "#0f1f35", border: "#1d3a5c", text: "#93c5fd" },
-  cpu:         { bg: SURFACE_ALT, border: BORDER,  text: "#71717a" },
-};
+type ChipVariant = "your-turn" | "penalty" | "shape" | "cpu" | "game-win" | "game-loss";
 
 function getChip(
+  winner: Player | null,
   turn: Player,
   pendingPick: number,
   requestedShape: string | null,
 ): { variant: ChipVariant; label: string } {
+  if (winner === "human") return { variant: "game-win", label: "You won this round" };
+  if (winner === "computer") return { variant: "game-loss", label: "CPU won this round" };
   if (turn === "computer") return { variant: "cpu", label: "CPU thinking..." };
   if (pendingPick > 0)
     return { variant: "penalty", label: `Draw ${pendingPick} card${pendingPick !== 1 ? "s" : ""}` };
@@ -41,12 +38,21 @@ function getChip(
   return { variant: "your-turn", label: "✓ Your turn" };
 }
 
-export function HeaderBar({ turn, pendingPick, requestedShape, onRestart, onSettings }: HeaderBarProps) {
+export function HeaderBar({ winner, turn, pendingPick, requestedShape, onRestart, onSettings }: HeaderBarProps) {
+  const theme = useAppTheme();
   const titleFont = { fontFamily: "Inter_700Bold" } as const;
   const labelFont = { fontFamily: "Inter_600SemiBold" } as const;
 
-  const { variant, label } = getChip(turn, pendingPick, requestedShape);
-  const colors = CHIP_STYLES[variant];
+  const { variant, label } = getChip(winner, turn, pendingPick, requestedShape);
+  const chipStyles: Record<ChipVariant, { bg: string; border: string; text: string }> = {
+    "your-turn": theme.chipYourTurn,
+    penalty: theme.chipPenalty,
+    shape: theme.chipShape,
+    cpu: theme.chipCpu,
+    "game-win": theme.chipYourTurn,
+    "game-loss": theme.chipPenalty,
+  };
+  const colors = chipStyles[variant];
   const prevLabel = useRef(label);
 
   // Fade on label change
@@ -83,12 +89,12 @@ export function HeaderBar({ turn, pendingPick, requestedShape, onRestart, onSett
   return (
     <View
       className="rounded-2xl border px-4 py-3.5"
-      style={{ borderColor: BORDER, backgroundColor: "#0b0e14" }}
+      style={{ borderColor: theme.border, backgroundColor: theme.headerSurface }}
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-1">
           <Animated.Text
-            style={[titleFont, { fontSize: 20, fontWeight: "bold", color: "#f4f4f5", letterSpacing: -0.5 }]}
+            style={[titleFont, { fontSize: 20, fontWeight: "bold", color: theme.textPrimary, letterSpacing: -0.5 }]}
           >
             Naija Whot
           </Animated.Text>

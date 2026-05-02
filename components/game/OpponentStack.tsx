@@ -1,13 +1,14 @@
 import { Text, View } from "react-native";
 import { cn } from "@/src/lib/cn";
 import { CardBack } from "./CardBack";
-import { BORDER, SURFACE_ALT } from "./theme";
+import { useAppTheme } from "./ThemeContext";
 
 type OpponentStackProps = {
   count: number;
 };
 
 export function OpponentStack({ count }: OpponentStackProps) {
+  const theme = useAppTheme();
   const shown = Math.min(count, 4);
 
   return (
@@ -24,9 +25,9 @@ export function OpponentStack({ count }: OpponentStackProps) {
       </View>
       <View
         className="mt-2 rounded-full border px-3 py-1"
-        style={{ borderColor: BORDER, backgroundColor: SURFACE_ALT }}
+        style={{ borderColor: theme.border, backgroundColor: theme.surfaceAlt }}
       >
-        <Text className="text-xs text-zinc-300">{count} cards</Text>
+        <Text style={{ fontSize: 12, color: theme.textSecondary }}>{count} cards</Text>
       </View>
     </View>
   );

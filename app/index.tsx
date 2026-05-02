@@ -8,7 +8,7 @@ import { PlayerSection } from "../components/game/PlayerSection";
 import { ShapePickerModal } from "../components/game/ShapePickerModal";
 import { TableSection } from "../components/game/TableSection";
 import { WinModal, type RoundResult } from "../components/game/WinModal";
-import { APP_BG, BORDER, SURFACE_ALT } from "../components/game/theme";
+import { useAppTheme } from "../components/game/ThemeContext";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -94,9 +94,10 @@ export default function Index() {
   const skipsLabel = skipNextPlayer ? "1" : "0";
   const isHumanTurn = turn === "human" && !winner && !awaitingShapeChoice;
   const insets = useSafeAreaInsets();
+  const theme = useAppTheme();
 
   return (
-    <SafeAreaView edges={["top", "left", "right"]} className="flex-1" style={{ backgroundColor: APP_BG }}>
+    <SafeAreaView edges={["top", "left", "right"]} className="flex-1" style={{ backgroundColor: theme.appBg }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -107,6 +108,7 @@ export default function Index() {
         }}
       >
         <HeaderBar
+          winner={winner}
           turn={turn}
           pendingPick={pendingPick}
           requestedShape={requestedShape ? SHAPE_LABELS[requestedShape] : null}
@@ -151,13 +153,13 @@ export default function Index() {
             right: 24,
             borderRadius: 14,
             borderWidth: 1,
-            borderColor: BORDER,
-            backgroundColor: SURFACE_ALT,
+            borderColor: theme.border,
+            backgroundColor: theme.surfaceAlt,
             paddingVertical: 14,
             alignItems: "center",
           }}
         >
-          <Text style={{ fontFamily: "CormorantGaramond_700Bold_Italic", fontSize: 20, color: "#f7f2e9" }}>
+          <Text style={{ fontFamily: "CormorantGaramond_700Bold_Italic", fontSize: 20, color: theme.bannerText }}>
             Choose a shape ♛
           </Text>
         </Pressable>
@@ -169,12 +171,9 @@ export default function Index() {
         onChoose={chooseShape}
       />
 
-      <WinModal
-        visible={!!winner}
-        winner={winner ?? "human"}
-        history={history}
-        onRestart={handleRestart}
-      />
+      {winner ? (
+        <WinModal winner={winner} history={history} onRestart={handleRestart} />
+      ) : null}
 
       <ControlCenterModal
         ref={controlCenterRef}

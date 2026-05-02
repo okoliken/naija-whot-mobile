@@ -2,7 +2,8 @@ import type { Difficulty } from "@/types/game";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { forwardRef, useCallback, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
-import { BORDER, BRAND, SURFACE, SURFACE_ALT } from "./theme";
+import { BRAND } from "./theme";
+import { useAppTheme } from "./ThemeContext";
 import type { RoundResult } from "./WinModal";
 
 type Props = {
@@ -21,6 +22,7 @@ const DIFFICULTY_DESC: Record<Difficulty, string> = {
 
 export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
   function ControlCenterModal({ difficulty, onDifficultyChange, history }, ref) {
+    const theme = useAppTheme();
     const internalRef = useRef<BottomSheetModal>(null);
     const sheetRef = (ref as React.RefObject<BottomSheetModal>) ?? internalRef;
 
@@ -45,13 +47,13 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
         snapPoints={["52%", "88%"]}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
-        backgroundStyle={{ backgroundColor: SURFACE }}
-        handleIndicatorStyle={{ backgroundColor: BORDER, width: 36, height: 3 }}
+        backgroundStyle={{ backgroundColor: theme.surface }}
+        handleIndicatorStyle={{ backgroundColor: theme.border, width: 36, height: 3 }}
       >
         <BottomSheetScrollView
           contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 48, paddingTop: 8 }}
         >
-          <Text style={fontScript} className="mb-6 text-center text-[36px] leading-none text-zinc-100">
+          <Text style={[fontScript, { marginBottom: 24, textAlign: "center", fontSize: 36, lineHeight: 36, color: theme.textPrimary }]}>
             Control Centre
           </Text>
 
@@ -59,31 +61,31 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
           {history.length > 0 && (
             <View
               className="mb-6 flex-row items-center justify-around rounded-2xl py-4"
-              style={{ backgroundColor: SURFACE_ALT, borderWidth: 1, borderColor: BORDER }}
+              style={{ backgroundColor: theme.surfaceAlt, borderWidth: 1, borderColor: theme.border }}
             >
               <View className="items-center gap-1">
-                <Text style={fontBold} className="text-2xl text-emerald-400">
+                <Text style={[fontBold, { fontSize: 24, color: "#34d399" }]}>
                   {wins}
                 </Text>
-                <Text style={fontReg} className="text-[10px] tracking-widest text-zinc-500">
+                <Text style={[fontReg, { fontSize: 10, letterSpacing: 3.2, color: theme.textMuted }]}>
                   WINS
                 </Text>
               </View>
-              <View className="h-8 w-px" style={{ backgroundColor: BORDER }} />
+              <View className="h-8 w-px" style={{ backgroundColor: theme.border }} />
               <View className="items-center gap-1">
-                <Text style={fontBold} className="text-2xl text-zinc-50">
+                <Text style={[fontBold, { fontSize: 24, color: theme.textPrimary }]}>
                   {history.length}
                 </Text>
-                <Text style={fontReg} className="text-[10px] tracking-widest text-zinc-500">
+                <Text style={[fontReg, { fontSize: 10, letterSpacing: 3.2, color: theme.textMuted }]}>
                   ROUNDS
                 </Text>
               </View>
-              <View className="h-8 w-px" style={{ backgroundColor: BORDER }} />
+              <View className="h-8 w-px" style={{ backgroundColor: theme.border }} />
               <View className="items-center gap-1">
-                <Text style={fontBold} className="text-2xl text-zinc-400">
+                <Text style={[fontBold, { fontSize: 24, color: theme.textSecondary }]}>
                   {losses}
                 </Text>
-                <Text style={fontReg} className="text-[10px] tracking-widest text-zinc-500">
+                <Text style={[fontReg, { fontSize: 10, letterSpacing: 3.2, color: theme.textMuted }]}>
                   LOSSES
                 </Text>
               </View>
@@ -91,7 +93,7 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
           )}
 
           {/* Difficulty */}
-          <Text style={fontMed} className="mb-3 text-xs tracking-widest text-zinc-500">
+          <Text style={[fontMed, { marginBottom: 12, fontSize: 12, letterSpacing: 2.4, color: theme.textMuted }]}>
             AI DIFFICULTY
           </Text>
           <View className="mb-8 flex-row gap-2">
@@ -103,20 +105,24 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
                   onPress={() => onDifficultyChange(d)}
                   className="flex-1 items-center rounded-xl py-3"
                   style={{
-                    backgroundColor: active ? BRAND : SURFACE_ALT,
+                    backgroundColor: active ? BRAND : theme.surfaceAlt,
                     borderWidth: 1,
-                    borderColor: active ? BRAND : BORDER,
+                    borderColor: active ? BRAND : theme.border,
                   }}
                 >
                   <Text
-                    style={fontBold}
-                    className={`text-xs tracking-widest ${active ? "text-zinc-50" : "text-zinc-400"}`}
+                    style={[
+                      fontBold,
+                      { fontSize: 12, letterSpacing: 2.4, color: active ? "#fafafa" : theme.textSecondary },
+                    ]}
                   >
                     {d.toUpperCase()}
                   </Text>
                   <Text
-                    style={fontReg}
-                    className={`mt-1 text-[9px] ${active ? "text-zinc-300" : "text-zinc-600"}`}
+                    style={[
+                      fontReg,
+                      { marginTop: 4, fontSize: 9, color: active ? "#d4d4d8" : theme.textSubtle },
+                    ]}
                   >
                     {DIFFICULTY_DESC[d]}
                   </Text>
@@ -126,14 +132,12 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
           </View>
 
           {/* History */}
-          <Text style={fontMed} className="mb-3 text-xs tracking-widest text-zinc-500">
+          <Text style={[fontMed, { marginBottom: 12, fontSize: 12, letterSpacing: 2.4, color: theme.textMuted }]}>
             GAME HISTORY
           </Text>
           {history.length === 0 ? (
             <View className="items-center py-8">
-              <Text style={fontReg} className="text-sm text-zinc-600">
-                No games played yet.
-              </Text>
+              <Text style={[fontReg, { fontSize: 14, color: theme.textSubtle }]}>No games played yet.</Text>
             </View>
           ) : (
             <View className="gap-2">
@@ -141,18 +145,21 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
                 <View
                   key={r.round}
                   className="flex-row items-center justify-between rounded-xl px-4 py-3"
-                  style={{ backgroundColor: SURFACE_ALT, borderWidth: 1, borderColor: BORDER }}
+                  style={{ backgroundColor: theme.surfaceAlt, borderWidth: 1, borderColor: theme.border }}
                 >
-                  <Text style={fontMed} className="text-xs text-zinc-400">
-                    Round {r.round}
-                  </Text>
+                  <Text style={[fontMed, { fontSize: 12, color: theme.textSecondary }]}>Round {r.round}</Text>
                   <Text
-                    style={fontBold}
-                    className={`text-xs ${r.winner === "human" ? "text-emerald-400" : "text-zinc-500"}`}
+                    style={[
+                      fontBold,
+                      {
+                        fontSize: 12,
+                        color: r.winner === "human" ? "#34d399" : theme.textMuted,
+                      },
+                    ]}
                   >
                     {r.winner === "human" ? "You won" : "CPU won"}
                   </Text>
-                  <Text style={fontReg} className="text-xs text-zinc-500">
+                  <Text style={[fontReg, { fontSize: 12, color: theme.textMuted }]}>
                     {r.humanCards} – {r.computerCards}
                   </Text>
                 </View>

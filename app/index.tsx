@@ -3,12 +3,14 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { CardFlyOverlay } from "../components/game/CardFlyOverlay";
 import { ControlCenterModal } from "../components/game/ControlCenterModal";
 import { HeaderBar } from "../components/game/HeaderBar";
+import { HowToPlayModal } from "../components/game/HowToPlayModal";
 import { OpponentSection } from "../components/game/OpponentSection";
 import { PlayerSection } from "../components/game/PlayerSection";
 import { ShapePickerModal } from "../components/game/ShapePickerModal";
 import { TableSection } from "../components/game/TableSection";
 import { WinModal, type RoundResult } from "../components/game/WinModal";
 import { useAppTheme } from "../components/game/ThemeContext";
+import { hasSeenIntro, markIntroSeen } from "@/src/lib/firstLaunch";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollView } from "react-native";
 import {
@@ -42,6 +44,22 @@ export default function Index() {
   } = useGameStore();
 
   const controlCenterRef = useRef<BottomSheetModal>(null);
+  const howToPlayRef = useRef<BottomSheetModal>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    hasSeenIntro().then((seen) => {
+      if (cancelled || seen) return;
+      howToPlayRef.current?.present();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleIntroDismiss = useCallback(() => {
+    markIntroSeen();
+  }, []);
 
   // Game history
   const roundCountRef = useRef(1);
@@ -131,6 +149,7 @@ export default function Index() {
           requestedShape={requestedShape ? SHAPE_LABELS[requestedShape] : null}
           onRestart={handleRestart}
           onSettings={() => controlCenterRef.current?.present()}
+          onHowToPlay={() => howToPlayRef.current?.present()}
         />
 
         <OpponentSection turn={turn} count={computerHand.length} />
@@ -172,6 +191,8 @@ export default function Index() {
         onDifficultyChange={setDifficulty}
         history={history}
       />
+
+      <HowToPlayModal ref={howToPlayRef} onDismiss={handleIntroDismiss} />
     </SafeAreaView>
   );
 }

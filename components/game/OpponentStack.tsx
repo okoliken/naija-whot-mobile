@@ -2,6 +2,7 @@ import { Text, View } from "react-native";
 import { cn } from "@/src/lib/cn";
 import { CardBack } from "./CardBack";
 import { useAppTheme } from "./ThemeContext";
+import { Font } from "./fonts";
 
 type OpponentStackProps = {
   count: number;
@@ -27,7 +28,9 @@ export function OpponentStack({ count }: OpponentStackProps) {
         className="mt-2 rounded-full border px-3 py-1"
         style={{ borderColor: theme.border, backgroundColor: theme.surfaceAlt }}
       >
-        <Text style={{ fontSize: 12, color: theme.textSecondary }}>{count} cards</Text>
+        <Text style={{ fontFamily: Font.ui.regular, fontSize: 12, color: theme.textSecondary }}>
+          {count} cards
+        </Text>
       </View>
     </View>
   );

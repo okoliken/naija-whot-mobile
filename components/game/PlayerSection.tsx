@@ -1,9 +1,10 @@
 import { type Card } from "@/src/store/gameStore";
-import { Pressable, ScrollView, View, Text} from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { CardFront } from "./CardFront";
 import { Section } from "./Section";
 import { isPlayableCard } from "./isPlayableCard";
 import { useAppTheme } from "./ThemeContext";
+import { Font } from "./fonts";
 
 type PlayerSectionProps = {
   humanHand: Card[];
@@ -28,8 +29,10 @@ export function PlayerSection({
   return (
     <Section>
       <View className="mb-3 flex-row items-baseline justify-between gap-3">
-        <Text style={{ fontSize: 20, fontWeight: "700", color: theme.textPrimary }}>Your Hand</Text>
-        <Text style={{ fontSize: 12, fontWeight: "500", color: theme.textMuted }}>
+        <Text style={{ fontFamily: Font.display.bold, fontSize: 17, color: theme.textPrimary, letterSpacing: 0.9 }}>
+          Your hand
+        </Text>
+        <Text style={{ fontFamily: Font.ui.regular, fontSize: 12, color: theme.textMuted }}>
           {humanHand.length} {humanHand.length === 1 ? "card" : "cards"}
         </Text>
       </View>
@@ -47,8 +50,13 @@ export function PlayerSection({
               key={card.id}
               onPress={() => onPlayCard(index)}
               disabled={!interactive}
-              className={!interactive ? "opacity-40" : "active:opacity-75"}
-              style={{ transform: [{ perspective: 1000 }] }}
+              style={({ pressed }) => ({
+                transform: [
+                  { perspective: 1000 },
+                  { scale: interactive && pressed ? 0.96 : 1 },
+                ],
+                opacity: interactive ? (pressed ? 0.88 : 1) : 0.38,
+              })}
             >
               <CardFront card={card} rotated={index % 2 === 0 ? "-rotate-[2deg]" : "rotate-[2deg]"} />
             </Pressable>
@@ -57,9 +65,14 @@ export function PlayerSection({
       </ScrollView>
 
       {message ? (
-        <Text numberOfLines={2} style={{ marginTop: 8, textAlign: "center", fontSize: 12, color: theme.textSecondary }}>
-          {message}
-        </Text>
+        <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border }}>
+          <Text
+            numberOfLines={2}
+            style={{ textAlign: "center", fontFamily: Font.ui.regular, fontSize: 12.5, lineHeight: 18, color: theme.textSecondary }}
+          >
+            {message}
+          </Text>
+        </View>
       ) : null}
     </Section>
   );

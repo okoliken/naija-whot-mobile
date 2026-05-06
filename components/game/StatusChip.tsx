@@ -12,6 +12,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { View } from "react-native";
 
+import { Font } from "./fonts";
+
 type StatusChipProps = {
   label: string;
   accent?: "default" | "warning";
@@ -181,7 +183,7 @@ export function StatusChip({ label, accent = "default" }: StatusChipProps) {
           textStyle,
           {
             fontSize: 11,
-            fontFamily: "Inter_600SemiBold",
+            fontFamily: Font.ui.semi,
             color: colors.text,
             letterSpacing: 0.3,
           },

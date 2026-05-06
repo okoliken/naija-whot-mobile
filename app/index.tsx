@@ -10,9 +10,12 @@ import { TableSection } from "../components/game/TableSection";
 import { WinModal, type RoundResult } from "../components/game/WinModal";
 import { useAppTheme } from "../components/game/ThemeContext";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, Text } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Card } from "@/src/store/gameStore";
+import { ScrollView } from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import type { Card, Player } from "@/src/store/gameStore";
 
 export default function Index() {
   const {
@@ -38,13 +41,12 @@ export default function Index() {
     setDifficulty,
   } = useGameStore();
 
-  const shapePickerRef = useRef<BottomSheetModal>(null);
   const controlCenterRef = useRef<BottomSheetModal>(null);
 
   // Game history
   const roundCountRef = useRef(1);
   const [history, setHistory] = useState<RoundResult[]>([]);
-  const prevWinner = useRef<typeof winner>(null);
+  const prevWinner = useRef<Player | null>(null);
 
   useEffect(() => {
     if (winner && winner !== prevWinner.current) {
@@ -71,7 +73,10 @@ export default function Index() {
   useEffect(() => {
     if (!topCard || topCard.id === prevTopCardId.current) return;
     prevTopCardId.current = topCard.id;
-    if (isFirstCard.current) { isFirstCard.current = false; return; }
+    if (isFirstCard.current) {
+      isFirstCard.current = false;
+      return;
+    }
     setFlyOrigin(turn === "computer" ? "human" : "computer");
     setFlyCard(topCard);
   }, [topCard, turn]);
@@ -85,10 +90,18 @@ export default function Index() {
   }, [startGame]);
 
   useEffect(() => {
-    if (turn !== "computer" || !gameStarted || winner || awaitingShapeChoice) return;
+    if (turn !== "computer" || !gameStarted || winner || awaitingShapeChoice)
+      return;
     const timer = setTimeout(runComputerTurn, 700);
     return () => clearTimeout(timer);
-  }, [aiTurnTick, awaitingShapeChoice, gameStarted, runComputerTurn, turn, winner]);
+  }, [
+    aiTurnTick,
+    awaitingShapeChoice,
+    gameStarted,
+    runComputerTurn,
+    turn,
+    winner,
+  ]);
 
   const needLabel = requestedShape ? SHAPE_LABELS[requestedShape] : "Any";
   const skipsLabel = skipNextPlayer ? "1" : "0";
@@ -97,14 +110,18 @@ export default function Index() {
   const theme = useAppTheme();
 
   return (
-    <SafeAreaView edges={["top", "left", "right"]} className="flex-1" style={{ backgroundColor: theme.appBg }}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      className="flex-1"
+      style={{ backgroundColor: theme.appBg }}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: 14,
-          paddingTop: 14,
-          paddingBottom: insets.bottom + 28,
-          gap: 14,
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: insets.bottom + 32,
+          gap: 16,
         }}
       >
         <HeaderBar
@@ -134,42 +151,16 @@ export default function Index() {
           requestedShape={requestedShape}
           pendingPick={pendingPick}
           isHumanTurn={isHumanTurn}
-          message={message}
+          message={awaitingShapeChoice ? "" : message}
           onPlayCard={playHumanCard}
         />
       </ScrollView>
 
       <CardFlyOverlay card={flyCard} origin={flyOrigin} />
 
-      {/* Shape picker trigger — shown whenever a Crown card is waiting for a shape */}
       {awaitingShapeChoice ? (
-        <Pressable
-          onPress={() => shapePickerRef.current?.present()}
-          style={{
-            position: "absolute",
-            bottom: 32,
-            alignSelf: "center",
-            left: 24,
-            right: 24,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: theme.border,
-            backgroundColor: theme.surfaceAlt,
-            paddingVertical: 14,
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ fontFamily: "CormorantGaramond_700Bold_Italic", fontSize: 20, color: theme.bannerText }}>
-            Choose a shape ♛
-          </Text>
-        </Pressable>
+        <ShapePickerModal shapes={gameShapes} onChoose={chooseShape} />
       ) : null}
-
-      <ShapePickerModal
-        ref={shapePickerRef}
-        shapes={gameShapes}
-        onChoose={chooseShape}
-      />
 
       {winner ? (
         <WinModal winner={winner} history={history} onRestart={handleRestart} />

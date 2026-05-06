@@ -3,6 +3,15 @@ export const BRAND = "#6e1018";
 
 export type ChipColors = { bg: string; border: string; text: string };
 
+/** iOS shadow + Android elevation for lifted panels */
+export type PanelLift = {
+  shadowColor: string;
+  shadowOffset: Readonly<{ width: number; height: number }>;
+  shadowOpacity: number;
+  shadowRadius: number;
+  elevation: number;
+};
+
 export type AppTheme = {
   appBg: string;
   surface: string;
@@ -11,6 +20,8 @@ export type AppTheme = {
   /** Raised panels (section cards) */
   sectionSurface: string;
   headerSurface: string;
+  /** Soft brand wash for primary CTAs (e.g. shape picker) */
+  brandTint: string;
   textPrimary: string;
   textSecondary: string;
   textMuted: string;
@@ -23,15 +34,18 @@ export type AppTheme = {
   chipCpu: ChipColors;
   messageShadow: string;
   messageShadowOpacity: number;
+  panelLift: PanelLift;
+  panelLiftSubtle: PanelLift;
 };
 
 export const darkTheme: AppTheme = {
   appBg: "#0b0e14",
   surface: "#121722",
   surfaceAlt: "#181f2b",
-  border: "#252d3b",
-  sectionSurface: "#10151e",
-  headerSurface: "#0b0e14",
+  border: "#2a3345",
+  sectionSurface: "#111620",
+  headerSurface: "#0d1118",
+  brandTint: "rgba(110, 16, 24, 0.22)",
   textPrimary: "#fafafa",
   textSecondary: "#a1a1aa",
   textMuted: "#71717a",
@@ -44,15 +58,30 @@ export const darkTheme: AppTheme = {
   chipCpu: { bg: "#181f2b", border: "#252d3b", text: "#a1a1aa" },
   messageShadow: "#000",
   messageShadowOpacity: 0.4,
+  panelLift: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  panelLiftSubtle: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.28,
+    shadowRadius: 10,
+    elevation: 5,
+  },
 };
 
 export const lightTheme: AppTheme = {
-  appBg: "#f2efe8",
+  appBg: "#ede9e0",
   surface: "#fffcf7",
-  surfaceAlt: "#ebe6dc",
-  border: "#d4cec3",
-  sectionSurface: "#fffcf8",
-  headerSurface: "#faf7f2",
+  surfaceAlt: "#e8e3d8",
+  border: "#c9c2b5",
+  sectionSurface: "#fffefb",
+  headerSurface: "#faf6ef",
+  brandTint: "rgba(110, 16, 24, 0.09)",
   textPrimary: "#18181b",
   textSecondary: "#52525b",
   textMuted: "#71717a",
@@ -65,4 +94,18 @@ export const lightTheme: AppTheme = {
   chipCpu: { bg: "#ebe6dc", border: "#d4cec3", text: "#71717a" },
   messageShadow: "#18181b",
   messageShadowOpacity: 0.12,
+  panelLift: {
+    shadowColor: "#292524",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.09,
+    shadowRadius: 18,
+    elevation: 4,
+  },
+  panelLiftSubtle: {
+    shadowColor: "#292524",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
 };

@@ -33,7 +33,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   drawHumanCard: () => {
     const state = get();
-    if (!gameRuntime.engine || state.turn !== "human" || state.winner || state.awaitingShapeChoice) return;
+    if (
+      !gameRuntime.engine ||
+      state.turn !== "human" ||
+      state.winner ||
+      state.awaitingShapeChoice
+    )
+      return;
 
     const drawCount = state.pendingPick > 0 ? state.pendingPick : 1;
     for (let i = 0; i < drawCount; i += 1) {
@@ -67,7 +73,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       aiTurnTick: state.aiTurnTick + 1,
       pendingPick: 0,
       skipNextPlayer: gameRuntime.pendingSkipCount > 0 ? "computer" : null,
-      message: drawCount > 1 ? `You picked ${drawCount} cards.` : "You picked from market.",
+      message:
+        drawCount > 1
+          ? `You picked ${drawCount} cards.`
+          : "You picked from market.",
       statusLine: buildStatusLine({
         turn: "computer",
         pendingPick: 0,
@@ -78,31 +87,59 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   playHumanCard: (index) => {
     const state = get();
-    if (!gameRuntime.engine || !state.topCard || state.turn !== "human" || state.awaitingShapeChoice || state.winner) return;
+    if (
+      !gameRuntime.engine ||
+      !state.topCard ||
+      state.turn !== "human" ||
+      state.awaitingShapeChoice ||
+      state.winner
+    )
+      return;
 
     const selectedCard = state.humanHand[index];
     if (!selectedCard) return;
 
-    if (gameRuntime.pendingPenalty === 2 && state.pendingPick > 0 && selectedCard.value !== 2) {
+    if (
+      gameRuntime.pendingPenalty === 2 &&
+      state.pendingPick > 0 &&
+      selectedCard.value !== 2
+    ) {
       set({ ...state, message: "You must defend with Pick Two or draw." });
       return;
     }
-    if (gameRuntime.pendingPenalty === 5 && state.pendingPick > 0 && selectedCard.value !== 5) {
+    if (
+      gameRuntime.pendingPenalty === 5 &&
+      state.pendingPick > 0 &&
+      selectedCard.value !== 5
+    ) {
       set({ ...state, message: "You must defend with Pick Three or draw." });
       return;
     }
-    if (gameRuntime.pendingPenalty === 14 && state.pendingPick > 0 && selectedCard.value !== 14) {
-      set({ ...state, message: "You must defend with General Market or draw." });
+    if (
+      gameRuntime.pendingPenalty === 14 &&
+      state.pendingPick > 0 &&
+      selectedCard.value !== 14
+    ) {
+      set({
+        ...state,
+        message: "You must defend with General Market or draw.",
+      });
       return;
     }
-    if (!canPlayByEngineRules(selectedCard, state.topCard, state.requestedShape)) {
+    if (
+      !canPlayByEngineRules(selectedCard, state.topCard, state.requestedShape)
+    ) {
       set({ ...state, message: "You cannot play that card." });
       return;
     }
 
     if (selectedCard.value === 20) {
       gameRuntime.pendingWhotIndex = index;
-      set({ ...state, awaitingShapeChoice: true, message: "Choose a shape for Crown (20)." });
+      set({
+        ...state,
+        awaitingShapeChoice: true,
+        message: "Choose a shape for Crown (20).",
+      });
       return;
     }
 
@@ -125,7 +162,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     let message = `You played ${cardLabel(playedUi)}.`;
     let requestedShape = state.requestedShape;
     let turn: Player = "computer";
-    let skipNextPlayer: Player | null = gameRuntime.pendingSkipCount > 0 ? "computer" : null;
+    let skipNextPlayer: Player | null =
+      gameRuntime.pendingSkipCount > 0 ? "computer" : null;
 
     if (played.value === 1) {
       turn = "human";
@@ -171,18 +209,32 @@ export const useGameStore = create<GameState>((set, get) => ({
       aiTurnTick: turn === "computer" ? state.aiTurnTick + 1 : state.aiTurnTick,
       winner,
       gameStarted: winner === null,
-      message: winner ? (winner === "human" ? "You won this round." : "Computer won this round.") : message,
+      message: winner
+        ? winner === "human"
+          ? "You won this round."
+          : "Computer won this round."
+        : message,
       statusLine: buildStatusLine({ turn, pendingPick, requestedShape }),
     });
   },
 
   chooseShape: (shape) => {
     const state = get();
-    if (!gameRuntime.engine || !state.awaitingShapeChoice || state.winner || gameRuntime.pendingWhotIndex === null) return;
+    if (
+      !gameRuntime.engine ||
+      !state.awaitingShapeChoice ||
+      state.winner ||
+      gameRuntime.pendingWhotIndex === null
+    )
+      return;
 
     let played;
     try {
-      played = gameRuntime.engine.play(0, gameRuntime.pendingWhotIndex, SHAPE_TO_ENGINE[shape]);
+      played = gameRuntime.engine.play(
+        0,
+        gameRuntime.pendingWhotIndex,
+        SHAPE_TO_ENGINE[shape],
+      );
     } catch (err) {
       if (isMarketDepletedError(err)) {
         const synced = syncHands();
@@ -207,14 +259,27 @@ export const useGameStore = create<GameState>((set, get) => ({
       aiTurnTick: winner ? state.aiTurnTick : state.aiTurnTick + 1,
       winner,
       gameStarted: winner === null,
-      message: winner ? "You won this round." : `You played Crown and requested ${SHAPE_LABELS[shape]}.`,
-      statusLine: buildStatusLine({ turn: "computer", pendingPick: state.pendingPick, requestedShape: shape }),
+      message: winner
+        ? "You won this round."
+        : `You played Crown and requested ${SHAPE_LABELS[shape]}.`,
+      statusLine: buildStatusLine({
+        turn: "computer",
+        pendingPick: state.pendingPick,
+        requestedShape: shape,
+      }),
     });
   },
 
   runComputerTurn: () => {
     const state = get();
-    if (!gameRuntime.engine || !state.topCard || state.turn !== "computer" || state.awaitingShapeChoice || state.winner) return;
+    if (
+      !gameRuntime.engine ||
+      !state.topCard ||
+      state.turn !== "computer" ||
+      state.awaitingShapeChoice ||
+      state.winner
+    )
+      return;
 
     if (gameRuntime.pendingSkipCount > 0) {
       gameRuntime.pendingSkipCount -= 1;
@@ -237,15 +302,20 @@ export const useGameStore = create<GameState>((set, get) => ({
       {
         hand: state.computerHand.map(toAiCard),
         topCard: toAiCard(state.topCard),
-        requestedShape: state.requestedShape ? SHAPE_TO_ENGINE[state.requestedShape] : null,
+        requestedShape: state.requestedShape
+          ? SHAPE_TO_ENGINE[state.requestedShape]
+          : null,
         opponentHandSize: state.humanHand.length,
         pendingPickCount: state.pendingPick,
         difficulty: state.difficulty,
       },
       (candidate, top, needed) => {
-        if (gameRuntime.pendingPenalty === 2 && state.pendingPick > 0) return candidate.value === 2;
-        if (gameRuntime.pendingPenalty === 5 && state.pendingPick > 0) return candidate.value === 5;
-        if (gameRuntime.pendingPenalty === 14 && state.pendingPick > 0) return candidate.value === 14;
+        if (gameRuntime.pendingPenalty === 2 && state.pendingPick > 0)
+          return candidate.value === 2;
+        if (gameRuntime.pendingPenalty === 5 && state.pendingPick > 0)
+          return candidate.value === 5;
+        if (gameRuntime.pendingPenalty === 14 && state.pendingPick > 0)
+          return candidate.value === 14;
         return canPlayAi(candidate, top, needed);
       },
     );
@@ -270,7 +340,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         ...synced,
         pendingPick: 0,
         turn: "human",
-        message: drawCount > 1 ? `Computer picked ${drawCount} cards.` : "Computer picked from market.",
+        message:
+          drawCount > 1
+            ? `Computer picked ${drawCount} cards.`
+            : "Computer picked from market.",
         statusLine: buildStatusLine({
           turn: "human",
           pendingPick: 0,
@@ -282,7 +355,11 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     let played;
     try {
-      played = gameRuntime.engine.play(1, aiDecision.cardIndex, aiDecision.requestedShape);
+      played = gameRuntime.engine.play(
+        1,
+        aiDecision.cardIndex,
+        aiDecision.requestedShape,
+      );
     } catch (err) {
       if (isMarketDepletedError(err)) {
         const synced = syncHands();
@@ -296,9 +373,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     const synced = syncHands();
     const playedUi = toUiCard(played);
     let pendingPick = state.pendingPick;
-    let requestedShape = aiDecision.requestedShape ? fromEngineShape(aiDecision.requestedShape) : null;
+    let requestedShape = aiDecision.requestedShape
+      ? fromEngineShape(aiDecision.requestedShape)
+      : null;
     let turn: Player = "human";
-    let skipNextPlayer: Player | null = gameRuntime.pendingSkipCount > 0 ? "human" : null;
+    let skipNextPlayer: Player | null =
+      gameRuntime.pendingSkipCount > 0 ? "human" : null;
     let message = `Computer played ${cardLabel(playedUi)}.`;
 
     if (played.value === 1) {
@@ -337,10 +417,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       skipNextPlayer,
       requestedShape,
       turn,
-      aiTurnTick: turn === "computer" && !winner ? state.aiTurnTick + 1 : state.aiTurnTick,
+      aiTurnTick:
+        turn === "computer" && !winner
+          ? state.aiTurnTick + 1
+          : state.aiTurnTick,
       winner,
       gameStarted: winner === null,
-      message: winner ? (winner === "human" ? "You won this round." : "Computer won this round.") : message,
+      message: winner
+        ? winner === "human"
+          ? "You won this round."
+          : "Computer won this round."
+        : message,
       statusLine: buildStatusLine({ turn, pendingPick, requestedShape }),
     });
 

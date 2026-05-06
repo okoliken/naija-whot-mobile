@@ -4,6 +4,7 @@ import { forwardRef, useCallback, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 import { BRAND } from "./theme";
 import { useAppTheme } from "./ThemeContext";
+import { Font } from "./fonts";
 import type { RoundResult } from "./WinModal";
 
 type Props = {
@@ -26,10 +27,10 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
     const internalRef = useRef<BottomSheetModal>(null);
     const sheetRef = (ref as React.RefObject<BottomSheetModal>) ?? internalRef;
 
-    const fontScript = { fontFamily: "CormorantGaramond_700Bold_Italic" } as const;
-    const fontBold = { fontFamily: "Inter_700Bold" } as const;
-    const fontMed = { fontFamily: "Inter_500Medium" } as const;
-    const fontReg = { fontFamily: "Inter_400Regular" } as const;
+    const fontDisplay = { fontFamily: Font.display.bold } as const;
+    const fontBold = { fontFamily: Font.ui.bold } as const;
+    const fontSemi = { fontFamily: Font.ui.semi } as const;
+    const fontReg = { fontFamily: Font.ui.regular } as const;
 
     const renderBackdrop = useCallback(
       (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
@@ -53,7 +54,7 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
         <BottomSheetScrollView
           contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 48, paddingTop: 8 }}
         >
-          <Text style={[fontScript, { marginBottom: 24, textAlign: "center", fontSize: 36, lineHeight: 36, color: theme.textPrimary }]}>
+          <Text style={[fontDisplay, { marginBottom: 24, textAlign: "center", fontSize: 26, lineHeight: 30, letterSpacing: 1.4, color: theme.textPrimary }]}>
             Control Centre
           </Text>
 
@@ -93,7 +94,7 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
           )}
 
           {/* Difficulty */}
-          <Text style={[fontMed, { marginBottom: 12, fontSize: 12, letterSpacing: 2.4, color: theme.textMuted }]}>
+          <Text style={[fontSemi, { marginBottom: 12, fontSize: 11, letterSpacing: 2.4, color: theme.textMuted }]}>
             AI DIFFICULTY
           </Text>
           <View className="mb-8 flex-row gap-2">
@@ -132,7 +133,7 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
           </View>
 
           {/* History */}
-          <Text style={[fontMed, { marginBottom: 12, fontSize: 12, letterSpacing: 2.4, color: theme.textMuted }]}>
+          <Text style={[fontSemi, { marginBottom: 12, fontSize: 11, letterSpacing: 2.4, color: theme.textMuted }]}>
             GAME HISTORY
           </Text>
           {history.length === 0 ? (
@@ -147,7 +148,7 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
                   className="flex-row items-center justify-between rounded-xl px-4 py-3"
                   style={{ backgroundColor: theme.surfaceAlt, borderWidth: 1, borderColor: theme.border }}
                 >
-                  <Text style={[fontMed, { fontSize: 12, color: theme.textSecondary }]}>Round {r.round}</Text>
+                  <Text style={[fontSemi, { fontSize: 12, color: theme.textSecondary }]}>Round {r.round}</Text>
                   <Text
                     style={[
                       fontBold,

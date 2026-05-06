@@ -34,7 +34,10 @@ export function TableSection({
             className="absolute left-5 top-4 -rotate-6"
             onPress={onDraw}
             disabled={!isHumanTurn}
-            style={({ pressed }) => ({ opacity: isHumanTurn ? (pressed ? 0.6 : 1) : 0.5 })}
+            style={({ pressed }) => ({
+              opacity: isHumanTurn ? (pressed ? 0.85 : 1) : 0.48,
+              transform: [{ scale: isHumanTurn && pressed ? 0.96 : 1 }],
+            })}
           >
             <CardBack count={deckCount} hint={isHumanTurn ? drawHint : "Market"} />
           </Pressable>

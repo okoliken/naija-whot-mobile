@@ -3,6 +3,7 @@ import { useCallback, useLayoutEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 import { BRAND } from "./theme";
 import { useAppTheme } from "./ThemeContext";
+import { Font } from "./fonts";
 
 export type RoundResult = {
   round: number;
@@ -22,10 +23,10 @@ export function WinModal({ winner, history, onRestart }: Props) {
   const theme = useAppTheme();
   const sheetRef = useRef<BottomSheetModal>(null);
 
-  const fontScript = { fontFamily: "CormorantGaramond_700Bold_Italic" } as const;
-  const fontBold = { fontFamily: "Inter_700Bold" } as const;
-  const fontMed = { fontFamily: "Inter_500Medium" } as const;
-  const fontReg = { fontFamily: "Inter_400Regular" } as const;
+  const fontDisplay = { fontFamily: Font.display.bold } as const;
+  const fontBold = { fontFamily: Font.ui.bold } as const;
+  const fontSemi = { fontFamily: Font.ui.semi } as const;
+  const fontReg = { fontFamily: Font.ui.regular } as const;
 
   useLayoutEffect(() => {
     const t = setTimeout(() => sheetRef.current?.present(), 50);
@@ -59,12 +60,13 @@ export function WinModal({ winner, history, onRestart }: Props) {
         {/* Result headline */}
         <Text
           style={[
-            fontScript,
+            fontDisplay,
             {
               marginBottom: 4,
               textAlign: "center",
-              fontSize: 52,
-              lineHeight: 52,
+              fontSize: 34,
+              lineHeight: 40,
+              letterSpacing: 0.6,
               color: isWin ? "#34d399" : theme.textSecondary,
             },
           ]}
@@ -72,7 +74,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
           {isWin ? "You won!" : "You lost."}
         </Text>
 
-        <Text style={[fontMed, { marginBottom: 24, textAlign: "center", fontSize: 12, letterSpacing: 2.4, color: theme.textMuted }]}>
+        <Text style={[fontSemi, { marginBottom: 24, textAlign: "center", fontSize: 11, letterSpacing: 2.4, color: theme.textMuted }]}>
           {isWin ? "WELL PLAYED" : "BETTER LUCK NEXT TIME"}
         </Text>
 
@@ -117,7 +119,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
         {/* History */}
         {history.length > 1 && (
           <>
-            <Text style={[fontMed, { marginBottom: 12, fontSize: 12, letterSpacing: 2.4, color: theme.textMuted }]}>
+            <Text style={[fontSemi, { marginBottom: 12, fontSize: 11, letterSpacing: 2.4, color: theme.textMuted }]}>
               ROUND HISTORY
             </Text>
             <View className="gap-2">
@@ -127,7 +129,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
                   className="flex-row items-center justify-between rounded-xl px-4 py-3"
                   style={{ backgroundColor: theme.surfaceAlt, borderWidth: 1, borderColor: theme.border }}
                 >
-                  <Text style={[fontMed, { fontSize: 12, color: theme.textSecondary }]}>Round {r.round}</Text>
+                  <Text style={[fontSemi, { fontSize: 12, color: theme.textSecondary }]}>Round {r.round}</Text>
                   <Text
                     style={[
                       fontBold,

@@ -1,11 +1,14 @@
 import { Stack } from "expo-router";
 import {
   Inter_400Regular,
-  Inter_500Medium,
   Inter_600SemiBold,
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import {
+  Cinzel_400Regular,
+  Cinzel_700Bold,
+} from "@expo-google-fonts/cinzel";
 import {
   CormorantGaramond_400Regular,
   CormorantGaramond_700Bold,
@@ -35,9 +38,10 @@ function ThemedRoot({ children }: { children: ReactNode }) {
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
-    Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    Cinzel_400Regular,
+    Cinzel_700Bold,
     CormorantGaramond_400Regular,
     CormorantGaramond_700Bold,
     CormorantGaramond_700Bold_Italic,

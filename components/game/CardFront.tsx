@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import { SHAPE_LABELS, type Card } from "@/src/store/gameStore";
 import { cn } from "@/src/lib/cn";
+import { Font } from "./fonts";
 import { CARD_SIZE } from "./cardTokens";
 
 const SHAPE_GLYPH: Record<string, string> = {
@@ -17,7 +18,7 @@ const CENTER_GLYPH_CLASS: Record<Card["shape"], string> = {
   triangle: "text-[50px]",
   cross: "text-[42px]",
   star: "text-[46px]",
-  square: "text-[42px]",
+  square: "text-[54px]",
   whot: "text-[40px]",
 };
 
@@ -26,7 +27,7 @@ const CORNER_GLYPH_CLASS: Record<Card["shape"], string> = {
   triangle: "text-[12px]",
   cross: "text-[11px]",
   star: "text-[12px]",
-  square: "text-[11px]",
+  square: "text-[16px]",
   whot: "text-[11px]",
 };
 
@@ -50,10 +51,9 @@ export function CardFront({ card, rotated }: CardFrontProps) {
   const title = renderCardTitle(card).toUpperCase();
   const isWhot = card.value === 20;
   const cornerValueClass = isWhot ? "text-[26px]" : "text-[24px]";
-  const fontRegular = { fontFamily: "Inter_400Regular" } as const;
-  const fontSemiBold = { fontFamily: "Inter_600SemiBold" } as const;
-  const fontBold = { fontFamily: "Inter_700Bold" } as const;
-  const fontScript = { fontFamily: "CormorantGaramond_700Bold_Italic" } as const;
+  const fontReg = { fontFamily: Font.card.regular } as const;
+  const fontBold = { fontFamily: Font.card.bold } as const;
+  const fontDisplay = { fontFamily: Font.card.displayItalic } as const;
 
   return (
     <View
@@ -65,24 +65,24 @@ export function CardFront({ card, rotated }: CardFrontProps) {
     >
       <View className="flex-1">
         <View className="absolute left-1 top-1">
-          <Text style={fontBold} className={cn("font-serif leading-none text-[#6e1018]", cornerValueClass)}>
+          <Text style={fontBold} className={cn("leading-none text-[#6e1018]", cornerValueClass)}>
             {card.value}
           </Text>
           <Text
-            style={fontSemiBold}
-            className={cn("font-serif leading-none text-[#6e1018]", CORNER_GLYPH_CLASS[card.shape])}
+            style={fontBold}
+            className={cn("leading-none text-[#6e1018]", CORNER_GLYPH_CLASS[card.shape])}
           >
             {glyph}
           </Text>
         </View>
 
         <View className="absolute bottom-1 right-1 items-end" style={{ transform: [{ rotate: "180deg" }] }}>
-          <Text style={fontBold} className={cn("font-serif leading-none text-[#6e1018]", cornerValueClass)}>
+          <Text style={fontBold} className={cn("leading-none text-[#6e1018]", cornerValueClass)}>
             {card.value}
           </Text>
           <Text
-            style={fontSemiBold}
-            className={cn("font-serif leading-none text-[#6e1018]", CORNER_GLYPH_CLASS[card.shape])}
+            style={fontBold}
+            className={cn("leading-none text-[#6e1018]", CORNER_GLYPH_CLASS[card.shape])}
           >
             {glyph}
           </Text>
@@ -93,25 +93,25 @@ export function CardFront({ card, rotated }: CardFrontProps) {
             <View className="items-center gap-0.5">
               <View className="flex-row gap-1">
                 {["●", "▲", "■", "✚", "★"].map((g) => (
-                  <Text key={g} style={fontSemiBold} className="text-[8px] text-[#6e1018]/35">
+                  <Text key={g} style={fontBold} className="text-[8px] text-[#6e1018]/35">
                     {g}
                   </Text>
                 ))}
               </View>
-              <Text style={fontScript} className="text-[46px] leading-none text-[#6e1018]">
+              <Text style={fontDisplay} className="text-[46px] leading-none text-[#6e1018]">
                 Whot
               </Text>
-              <Text style={fontSemiBold} className="text-[7px] tracking-[2px] text-[#6e1018]/55">
+              <Text style={fontBold} className="text-[7px] tracking-[2px] text-[#6e1018]/55">
                 W H O T
               </Text>
-              <Text style={fontRegular} className="mt-0.5 text-center text-[6px] tracking-[0.5px] text-[#6e1018]/45">
+              <Text style={fontReg} className="mt-0.5 text-center text-[6px] tracking-[0.5px] text-[#6e1018]/45">
                 A GAME FOR EVERYONE
               </Text>
             </View>
           ) : (
             <Text
               style={fontBold}
-              className={cn("font-serif leading-none text-[#6e1018]", CENTER_GLYPH_CLASS[card.shape])}
+              className={cn("leading-none text-[#6e1018]", CENTER_GLYPH_CLASS[card.shape])}
             >
               {glyph}
             </Text>
@@ -120,7 +120,7 @@ export function CardFront({ card, rotated }: CardFrontProps) {
 
         {!isWhot ? (
           <View className="absolute bottom-1 left-0">
-            <Text style={fontRegular} className="text-[8px] font-serif tracking-wide text-[#6e1018]/80">
+            <Text style={fontReg} className="text-[8px] tracking-wide text-[#6e1018]/80">
               {title}
             </Text>
           </View>

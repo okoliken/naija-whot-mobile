@@ -11,8 +11,12 @@ export function Section({ children }: SectionProps) {
   const theme = useAppTheme();
   return (
     <View
-      className="rounded-2xl border px-4 py-3.5"
-      style={{ borderColor: theme.border, backgroundColor: theme.sectionSurface }}
+      className="rounded-3xl border px-4 py-4"
+      style={{
+        borderColor: theme.border,
+        backgroundColor: theme.sectionSurface,
+        ...theme.panelLift,
+      }}
     >
       {children}
     </View>

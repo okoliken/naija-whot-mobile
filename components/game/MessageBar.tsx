@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
 import { useAppTheme } from "./ThemeContext";
+import { Font } from "./fonts";
 
 type Props = {
   message: string;
@@ -21,7 +22,10 @@ export function MessageBar({ message }: Props) {
         elevation: 8,
       }}
     >
-      <Text numberOfLines={2} style={{ textAlign: "center", fontSize: 14, fontWeight: "500", color: theme.textPrimary }}>
+      <Text
+        numberOfLines={2}
+        style={{ textAlign: "center", fontFamily: Font.ui.semi, fontSize: 14, color: theme.textPrimary }}
+      >
         {message}
       </Text>
     </View>

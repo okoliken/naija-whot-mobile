@@ -1,6 +1,6 @@
 import type { Difficulty } from "@/types/game";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import { forwardRef, useCallback, useRef } from "react";
+import { useCallback, useRef, type RefObject } from "react";
 import { Pressable, Text, View } from "react-native";
 import { BRAND } from "./theme";
 import { useAppTheme } from "./ThemeContext";
@@ -11,6 +11,7 @@ type Props = {
   difficulty: Difficulty;
   onDifficultyChange: (d: Difficulty) => void;
   history: RoundResult[];
+  ref?: RefObject<BottomSheetModal | null>;
 };
 
 const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"];
@@ -21,11 +22,10 @@ const DIFFICULTY_DESC: Record<Difficulty, string> = {
   hard: "CPU plays to win",
 };
 
-export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
-  function ControlCenterModal({ difficulty, onDifficultyChange, history }, ref) {
+export function ControlCenterModal({ difficulty, onDifficultyChange, history, ref }: Props) {
     const theme = useAppTheme();
     const internalRef = useRef<BottomSheetModal>(null);
-    const sheetRef = (ref as React.RefObject<BottomSheetModal>) ?? internalRef;
+    const sheetRef = ref ?? internalRef;
 
     const fontDisplay = { fontFamily: Font.display.bold } as const;
     const fontBold = { fontFamily: Font.ui.bold } as const;
@@ -170,5 +170,4 @@ export const ControlCenterModal = forwardRef<BottomSheetModal, Props>(
         </BottomSheetScrollView>
       </BottomSheetModal>
     );
-  },
-);
+}

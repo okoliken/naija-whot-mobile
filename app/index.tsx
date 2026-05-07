@@ -1,49 +1,23 @@
-import { SHAPE_LABELS, gameShapes, useGameStore } from "@/src/store/gameStore";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { CardFlyOverlay } from "../components/game/CardFlyOverlay";
-import { ControlCenterModal } from "../components/game/ControlCenterModal";
-import { HeaderBar } from "../components/game/HeaderBar";
-import { HowToPlayModal } from "../components/game/HowToPlayModal";
-import { OpponentSection } from "../components/game/OpponentSection";
-import { PlayerSection } from "../components/game/PlayerSection";
-import { ShapePickerModal } from "../components/game/ShapePickerModal";
-import { TableSection } from "../components/game/TableSection";
-import { WinModal, type RoundResult } from "../components/game/WinModal";
-import { useAppTheme } from "../components/game/ThemeContext";
+import { useGameStore } from "@/src/store/gameStore";
 import { hasSeenIntro, markIntroSeen } from "@/src/lib/firstLaunch";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollView } from "react-native";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { router } from "expo-router";
+import { useCallback, useEffect, useRef } from "react";
+import { Pressable, Text, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import type { Card, Player } from "@/src/store/gameStore";
 
-export default function Index() {
-  const {
-    deck,
-    topCard,
-    humanHand,
-    computerHand,
-    turn,
-    pendingPick,
-    skipNextPlayer,
-    requestedShape,
-    awaitingShapeChoice,
-    aiTurnTick,
-    message,
-    gameStarted,
-    winner,
-    difficulty,
-    startGame,
-    drawHumanCard,
-    playHumanCard,
-    chooseShape,
-    runComputerTurn,
-    setDifficulty,
-  } = useGameStore();
+import { Font } from "../components/game/fonts";
+import { HowToPlayModal } from "../components/game/HowToPlayModal";
+import { BRAND } from "../components/game/theme";
+import { useAppTheme } from "../components/game/ThemeContext";
 
-  const controlCenterRef = useRef<BottomSheetModal>(null);
+export default function HomeScreen() {
+  const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const startGame = useGameStore((s) => s.startGame);
   const howToPlayRef = useRef<BottomSheetModal>(null);
 
   useEffect(() => {
@@ -61,136 +35,176 @@ export default function Index() {
     markIntroSeen();
   }, []);
 
-  // Game history
-  const roundCountRef = useRef(1);
-  const [history, setHistory] = useState<RoundResult[]>([]);
-  const prevWinner = useRef<Player | null>(null);
-
-  useEffect(() => {
-    if (winner && winner !== prevWinner.current) {
-      prevWinner.current = winner;
-      setHistory((h) => [
-        ...h,
-        {
-          round: roundCountRef.current,
-          winner,
-          humanCards: humanHand.length,
-          computerCards: computerHand.length,
-        },
-      ]);
-    }
-    if (!winner) prevWinner.current = null;
-  }, [winner, humanHand.length, computerHand.length]);
-
-  // Card fly animation
-  const isFirstCard = useRef(true);
-  const prevTopCardId = useRef<string | null>(null);
-  const [flyCard, setFlyCard] = useState<Card | null>(null);
-  const [flyOrigin, setFlyOrigin] = useState<"human" | "computer">("human");
-
-  useEffect(() => {
-    if (!topCard || topCard.id === prevTopCardId.current) return;
-    prevTopCardId.current = topCard.id;
-    if (isFirstCard.current) {
-      isFirstCard.current = false;
-      return;
-    }
-    setFlyOrigin(turn === "computer" ? "human" : "computer");
-    setFlyCard(topCard);
-  }, [topCard, turn]);
-
-  const handleRestart = useCallback(() => {
-    isFirstCard.current = true;
-    prevTopCardId.current = null;
-    setFlyCard(null);
-    roundCountRef.current += 1;
+  const handlePlayCpu = useCallback(() => {
     startGame();
+    router.push("/game");
   }, [startGame]);
 
-  useEffect(() => {
-    if (turn !== "computer" || !gameStarted || winner || awaitingShapeChoice)
-      return;
-    const timer = setTimeout(runComputerTurn, 700);
-    return () => clearTimeout(timer);
-  }, [
-    aiTurnTick,
-    awaitingShapeChoice,
-    gameStarted,
-    runComputerTurn,
-    turn,
-    winner,
-  ]);
-
-  const needLabel = requestedShape ? SHAPE_LABELS[requestedShape] : "Any";
-  const skipsLabel = skipNextPlayer ? "1" : "0";
-  const isHumanTurn = turn === "human" && !winner && !awaitingShapeChoice;
-  const insets = useSafeAreaInsets();
-  const theme = useAppTheme();
+  const handleHowToPlay = useCallback(() => {
+    howToPlayRef.current?.present();
+  }, []);
 
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
-      className="flex-1"
-      style={{ backgroundColor: theme.appBg }}
+      style={{ flex: 1, backgroundColor: theme.appBg }}
     >
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 16,
-          paddingBottom: insets.bottom + 32,
-          gap: 16,
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: 24,
+          paddingTop: 24,
+          paddingBottom: insets.bottom + 24,
+          justifyContent: "space-between",
         }}
       >
-        <HeaderBar
-          winner={winner}
-          turn={turn}
-          pendingPick={pendingPick}
-          requestedShape={requestedShape ? SHAPE_LABELS[requestedShape] : null}
-          onRestart={handleRestart}
-          onSettings={() => controlCenterRef.current?.present()}
-          onHowToPlay={() => howToPlayRef.current?.present()}
-        />
+        {/* Brand */}
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <View
+            style={{
+              width: 96,
+              height: 132,
+              borderRadius: 12,
+              backgroundColor: BRAND,
+              alignItems: "center",
+              justifyContent: "center",
+              transform: [{ rotate: "-6deg" }],
+              marginBottom: 28,
+              ...theme.panelLift,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: Font.display.bold,
+                fontSize: 22,
+                letterSpacing: 1.6,
+                color: "#fafafa",
+              }}
+            >
+              WHOT
+            </Text>
+          </View>
+          <Text
+            style={{
+              fontFamily: Font.display.bold,
+              fontSize: 40,
+              lineHeight: 46,
+              letterSpacing: 2,
+              color: theme.textPrimary,
+              textAlign: "center",
+            }}
+          >
+            Naija Whot
+          </Text>
+          <Text
+            style={{
+              fontFamily: Font.ui.regular,
+              marginTop: 12,
+              fontSize: 11,
+              letterSpacing: 2.8,
+              color: theme.textMuted,
+              textAlign: "center",
+            }}
+          >
+            CLASSIC TABLETOP · ONE DECK
+          </Text>
+        </View>
 
-        <OpponentSection turn={turn} count={computerHand.length} />
+        {/* CTAs */}
+        <View>
+          <Pressable
+            onPress={handlePlayCpu}
+            style={({ pressed }) => ({
+              alignItems: "center",
+              borderRadius: 18,
+              paddingVertical: 20,
+              backgroundColor: BRAND,
+              opacity: pressed ? 0.9 : 1,
+              ...theme.panelLift,
+            })}
+          >
+            <Text
+              style={{
+                fontFamily: Font.ui.bold,
+                fontSize: 14,
+                letterSpacing: 2.8,
+                color: "#fafafa",
+              }}
+            >
+              PLAY VS CPU
+            </Text>
+            <Text
+              style={{
+                fontFamily: Font.ui.regular,
+                marginTop: 6,
+                fontSize: 11,
+                letterSpacing: 1.2,
+                color: "rgba(250,250,250,0.72)",
+              }}
+            >
+              Single player · 1 vs AI
+            </Text>
+          </Pressable>
 
-        <TableSection
-          deckCount={deck.length}
-          topCard={topCard}
-          isHumanTurn={isHumanTurn}
-          needLabel={needLabel}
-          pendingPick={pendingPick}
-          skipsLabel={skipsLabel}
-          onDraw={drawHumanCard}
-        />
+          <View
+            style={{
+              alignItems: "center",
+              borderRadius: 18,
+              paddingVertical: 20,
+              marginTop: 12,
+              backgroundColor: theme.surfaceAlt,
+              borderWidth: 1,
+              borderColor: theme.border,
+              opacity: 0.65,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: Font.ui.bold,
+                fontSize: 14,
+                letterSpacing: 2.8,
+                color: theme.textSecondary,
+              }}
+            >
+              PLAY VS PLAYER
+            </Text>
+            <Text
+              style={{
+                fontFamily: Font.ui.regular,
+                marginTop: 6,
+                fontSize: 10,
+                letterSpacing: 1.8,
+                color: theme.textMuted,
+              }}
+            >
+              COMING SOON
+            </Text>
+          </View>
 
-        <PlayerSection
-          humanHand={humanHand}
-          topCard={topCard}
-          requestedShape={requestedShape}
-          pendingPick={pendingPick}
-          isHumanTurn={isHumanTurn}
-          message={awaitingShapeChoice ? "" : message}
-          onPlayCard={playHumanCard}
-        />
-      </ScrollView>
-
-      <CardFlyOverlay card={flyCard} origin={flyOrigin} />
-
-      {awaitingShapeChoice ? (
-        <ShapePickerModal shapes={gameShapes} onChoose={chooseShape} />
-      ) : null}
-
-      {winner ? (
-        <WinModal winner={winner} history={history} onRestart={handleRestart} />
-      ) : null}
-
-      <ControlCenterModal
-        ref={controlCenterRef}
-        difficulty={difficulty}
-        onDifficultyChange={setDifficulty}
-        history={history}
-      />
+          <Pressable
+            onPress={handleHowToPlay}
+            style={({ pressed }) => ({
+              alignItems: "center",
+              paddingVertical: 16,
+              marginTop: 12,
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <Text
+              style={{
+                fontFamily: Font.ui.semi,
+                fontSize: 12,
+                letterSpacing: 2.4,
+                color: theme.textSecondary,
+              }}
+            >
+              HOW TO PLAY
+            </Text>
+          </Pressable>
+        </View>
+      </View>
 
       <HowToPlayModal ref={howToPlayRef} onDismiss={handleIntroDismiss} />
     </SafeAreaView>

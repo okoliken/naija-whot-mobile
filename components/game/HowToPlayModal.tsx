@@ -51,292 +51,288 @@ const SPECIAL_CARDS: SpecialCard[] = [
 ];
 
 export function HowToPlayModal({ onDismiss, ref }: Props) {
-    const theme = useAppTheme();
-    const internalRef = useRef<BottomSheetModal>(null);
-    const sheetRef = ref ?? internalRef;
+  const theme = useAppTheme();
+  const internalRef = useRef<BottomSheetModal>(null);
+  const sheetRef = ref ?? internalRef;
 
-    const fontDisplay = { fontFamily: Font.display.bold } as const;
-    const fontBold = { fontFamily: Font.ui.bold } as const;
-    const fontSemi = { fontFamily: Font.ui.semi } as const;
-    const fontReg = { fontFamily: Font.ui.regular } as const;
+  const fontDisplay = { fontFamily: Font.display.bold } as const;
+  const fontBold = { fontFamily: Font.ui.bold } as const;
+  const fontSemi = { fontFamily: Font.ui.semi } as const;
+  const fontReg = { fontFamily: Font.ui.regular } as const;
 
-    const renderBackdrop = useCallback(
-      (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
-        <BottomSheetBackdrop
-          {...props}
-          disappearsOnIndex={-1}
-          appearsOnIndex={0}
-          opacity={0.75}
-        />
-      ),
-      [],
-    );
+  const renderBackdrop = useCallback(
+    (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.75}
+      />
+    ),
+    [],
+  );
 
-    const handleClose = useCallback(() => {
-      sheetRef.current?.dismiss();
-      onDismiss?.();
-    }, [onDismiss, sheetRef]);
+  const handleClose = useCallback(() => {
+    sheetRef.current?.dismiss();
+    onDismiss?.();
+  }, [onDismiss, sheetRef]);
 
-    return (
-      <BottomSheetModal
-        ref={sheetRef}
-        snapPoints={["88%"]}
-        enableDynamicSizing={false}
-        enablePanDownToClose
-        backdropComponent={renderBackdrop}
-        backgroundStyle={{ backgroundColor: theme.surface }}
-        handleIndicatorStyle={{
-          backgroundColor: theme.border,
-          width: 36,
-          height: 3,
+  return (
+    <BottomSheetModal
+      ref={sheetRef}
+      snapPoints={["88%"]}
+      enableDynamicSizing={false}
+      enablePanDownToClose
+      backdropComponent={renderBackdrop}
+      backgroundStyle={{ backgroundColor: theme.surface }}
+      handleIndicatorStyle={{
+        backgroundColor: theme.border,
+        width: 36,
+        height: 3,
+      }}
+      onDismiss={onDismiss}
+    >
+      <View
+        style={{
+          backgroundColor: theme.surface,
+          paddingHorizontal: 24,
+          paddingTop: 4,
+          paddingBottom: 16,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.border,
         }}
-        onDismiss={onDismiss}
       >
+        <Text
+          style={[
+            fontDisplay,
+            {
+              marginBottom: 6,
+              textAlign: "center",
+              fontSize: 26,
+              lineHeight: 30,
+              letterSpacing: 1.4,
+              color: theme.textPrimary,
+            },
+          ]}
+        >
+          How to Play
+        </Text>
+        <Text
+          style={[
+            fontReg,
+            {
+              textAlign: "center",
+              fontSize: 12,
+              letterSpacing: 1.6,
+              color: theme.textMuted,
+            },
+          ]}
+        >
+          NAIJA WHOT · CLASSIC RULES
+        </Text>
+      </View>
+
+      <BottomSheetScrollView
+        contentContainerStyle={{
+          paddingBottom: 32,
+          paddingTop: 20,
+          paddingHorizontal: 24,
+        }}
+      >
+        {/* Goal */}
+        <Text
+          style={[
+            fontSemi,
+            {
+              marginBottom: 8,
+              fontSize: 11,
+              letterSpacing: 2.4,
+              color: theme.textMuted,
+            },
+          ]}
+        >
+          THE GOAL
+        </Text>
         <View
+          className="mb-6 rounded-2xl px-4 py-4"
           style={{
-            backgroundColor: theme.surface,
-            paddingHorizontal: 24,
-            paddingTop: 4,
-            paddingBottom: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
+            backgroundColor: theme.surfaceAlt,
+            borderWidth: 1,
+            borderColor: theme.border,
           }}
         >
-          <Text
-            style={[
-              fontDisplay,
-              {
-                marginBottom: 6,
-                textAlign: "center",
-                fontSize: 26,
-                lineHeight: 30,
-                letterSpacing: 1.4,
-                color: theme.textPrimary,
-              },
-            ]}
-          >
-            How to Play
-          </Text>
           <Text
             style={[
               fontReg,
-              {
-                textAlign: "center",
-                fontSize: 12,
-                letterSpacing: 1.6,
-                color: theme.textMuted,
-              },
+              { fontSize: 14, lineHeight: 21, color: theme.textSecondary },
             ]}
           >
-            NAIJA WHOT · CLASSIC RULES
+            Be the first to empty your hand. Each turn, play one card that
+            matches the top card by{" "}
+            <Text style={[fontBold, { color: theme.textPrimary }]}>shape</Text>{" "}
+            or{" "}
+            <Text style={[fontBold, { color: theme.textPrimary }]}>number</Text>
+            . Can't play? Draw from the market.
           </Text>
         </View>
 
-        <BottomSheetScrollView
-          contentContainerStyle={{
-            paddingBottom: 32,
-            paddingTop: 20,
-            paddingHorizontal: 24,
+        {/* Shapes */}
+        <Text
+          style={[
+            fontSemi,
+            {
+              marginBottom: 8,
+              fontSize: 11,
+              letterSpacing: 2.4,
+              color: theme.textMuted,
+            },
+          ]}
+        >
+          THE FIVE SHAPES
+        </Text>
+        <View
+          className="mb-6 rounded-2xl px-4 py-4"
+          style={{
+            backgroundColor: theme.surfaceAlt,
+            borderWidth: 1,
+            borderColor: theme.border,
           }}
         >
-          {/* Goal */}
           <Text
             style={[
-              fontSemi,
-              {
-                marginBottom: 8,
-                fontSize: 11,
-                letterSpacing: 2.4,
-                color: theme.textMuted,
-              },
+              fontReg,
+              { fontSize: 14, lineHeight: 21, color: theme.textSecondary },
             ]}
           >
-            THE GOAL
+            Circle · Triangle · Cross · Square · Star.{"\n"}
+            The{" "}
+            <Text style={[fontBold, { color: theme.textPrimary }]}>
+              Whot
+            </Text>{" "}
+            card is a sixth, special suit — it's a wild.
           </Text>
-          <View
-            className="mb-6 rounded-2xl px-4 py-4"
-            style={{
-              backgroundColor: theme.surfaceAlt,
-              borderWidth: 1,
-              borderColor: theme.border,
-            }}
-          >
-            <Text
-              style={[
-                fontReg,
-                { fontSize: 14, lineHeight: 21, color: theme.textSecondary },
-              ]}
-            >
-              Be the first to empty your hand. Each turn, play one card that
-              matches the top card by{" "}
-              <Text style={[fontBold, { color: theme.textPrimary }]}>
-                shape
-              </Text>{" "}
-              or{" "}
-              <Text style={[fontBold, { color: theme.textPrimary }]}>
-                number
-              </Text>
-              . Can't play? Draw from the market.
-            </Text>
-          </View>
+        </View>
 
-          {/* Shapes */}
-          <Text
-            style={[
-              fontSemi,
-              {
-                marginBottom: 8,
-                fontSize: 11,
-                letterSpacing: 2.4,
-                color: theme.textMuted,
-              },
-            ]}
-          >
-            THE FIVE SHAPES
-          </Text>
-          <View
-            className="mb-6 rounded-2xl px-4 py-4"
-            style={{
-              backgroundColor: theme.surfaceAlt,
-              borderWidth: 1,
-              borderColor: theme.border,
-            }}
-          >
-            <Text
-              style={[
-                fontReg,
-                { fontSize: 14, lineHeight: 21, color: theme.textSecondary },
-              ]}
+        {/* Special cards */}
+        <Text
+          style={[
+            fontSemi,
+            {
+              marginBottom: 12,
+              fontSize: 11,
+              letterSpacing: 2.4,
+              color: theme.textMuted,
+            },
+          ]}
+        >
+          SPECIAL CARDS
+        </Text>
+        <View className="mb-6 gap-2">
+          {SPECIAL_CARDS.map((card) => (
+            <View
+              key={card.value}
+              className="flex-row items-center gap-3 rounded-2xl px-3 py-3"
+              style={{
+                backgroundColor: theme.surfaceAlt,
+                borderWidth: 1,
+                borderColor: theme.border,
+              }}
             >
-              Circle · Triangle · Cross · Square · Star.{"\n"}
-              The{" "}
-              <Text style={[fontBold, { color: theme.textPrimary }]}>
-                Whot
-              </Text>{" "}
-              card is a sixth, special suit — it's a wild.
-            </Text>
-          </View>
-
-          {/* Special cards */}
-          <Text
-            style={[
-              fontSemi,
-              {
-                marginBottom: 12,
-                fontSize: 11,
-                letterSpacing: 2.4,
-                color: theme.textMuted,
-              },
-            ]}
-          >
-            SPECIAL CARDS
-          </Text>
-          <View className="mb-6 gap-2">
-            {SPECIAL_CARDS.map((card) => (
               <View
-                key={card.value}
-                className="flex-row items-center gap-3 rounded-2xl px-3 py-3"
-                style={{
-                  backgroundColor: theme.surfaceAlt,
-                  borderWidth: 1,
-                  borderColor: theme.border,
-                }}
+                className="h-12 w-10 items-center justify-center rounded-lg"
+                style={{ backgroundColor: BRAND }}
               >
-                <View
-                  className="h-12 w-10 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: BRAND }}
+                <Text
+                  style={[
+                    fontBold,
+                    { fontSize: 18, color: "#fafafa", letterSpacing: 0.4 },
+                  ]}
                 >
-                  <Text
-                    style={[
-                      fontBold,
-                      { fontSize: 18, color: "#fafafa", letterSpacing: 0.4 },
-                    ]}
-                  >
-                    {card.value}
-                  </Text>
-                </View>
-                <View className="flex-1">
-                  <Text
-                    style={[
-                      fontBold,
-                      {
-                        fontSize: 13,
-                        color: theme.textPrimary,
-                        letterSpacing: 0.6,
-                      },
-                    ]}
-                  >
-                    {card.name}
-                  </Text>
-                  <Text
-                    style={[
-                      fontReg,
-                      {
-                        marginTop: 2,
-                        fontSize: 12,
-                        lineHeight: 17,
-                        color: theme.textSecondary,
-                      },
-                    ]}
-                  >
-                    {card.effect}
-                  </Text>
-                </View>
+                  {card.value}
+                </Text>
               </View>
-            ))}
-          </View>
+              <View className="flex-1">
+                <Text
+                  style={[
+                    fontBold,
+                    {
+                      fontSize: 13,
+                      color: theme.textPrimary,
+                      letterSpacing: 0.6,
+                    },
+                  ]}
+                >
+                  {card.name}
+                </Text>
+                <Text
+                  style={[
+                    fontReg,
+                    {
+                      marginTop: 2,
+                      fontSize: 12,
+                      lineHeight: 17,
+                      color: theme.textSecondary,
+                    },
+                  ]}
+                >
+                  {card.effect}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
 
-          {/* Tip */}
+        {/* Tip */}
+        <Text
+          style={[
+            fontSemi,
+            {
+              marginBottom: 8,
+              fontSize: 11,
+              letterSpacing: 2.4,
+              color: theme.textMuted,
+            },
+          ]}
+        >
+          TIP
+        </Text>
+        <View
+          className="mb-8 rounded-2xl px-4 py-4"
+          style={{
+            backgroundColor: theme.brandTint,
+            borderWidth: 1,
+            borderColor: theme.border,
+          }}
+        >
           <Text
             style={[
-              fontSemi,
-              {
-                marginBottom: 8,
-                fontSize: 11,
-                letterSpacing: 2.4,
-                color: theme.textMuted,
-              },
+              fontReg,
+              { fontSize: 13, lineHeight: 19, color: theme.textSecondary },
             ]}
           >
-            TIP
+            Defend penalty cards by stacking the same value — answer a 2 with a
+            2, a 5 with a 5, a 14 with a 14. Otherwise you draw.
           </Text>
-          <View
-            className="mb-8 rounded-2xl px-4 py-4"
-            style={{
-              backgroundColor: theme.brandTint,
-              borderWidth: 1,
-              borderColor: theme.border,
-            }}
-          >
-            <Text
-              style={[
-                fontReg,
-                { fontSize: 13, lineHeight: 19, color: theme.textSecondary },
-              ]}
-            >
-              Defend penalty cards by stacking the same value — answer a 2 with
-              a 2, a 5 with a 5, a 14 with a 14. Otherwise you draw.
-            </Text>
-          </View>
+        </View>
 
-          <Pressable
-            onPress={handleClose}
-            className="items-center rounded-2xl py-4"
-            style={{
-              backgroundColor: BRAND,
-              ...theme.panelLiftSubtle,
-            }}
+        <Pressable
+          onPress={handleClose}
+          className="items-center rounded-2xl py-4"
+          style={{
+            backgroundColor: BRAND,
+            ...theme.panelLiftSubtle,
+          }}
+        >
+          <Text
+            style={[
+              fontBold,
+              { fontSize: 13, letterSpacing: 2.4, color: "#fafafa" },
+            ]}
           >
-            <Text
-              style={[
-                fontBold,
-                { fontSize: 13, letterSpacing: 2.4, color: "#fafafa" },
-              ]}
-            >
-              GOT IT
-            </Text>
-          </Pressable>
-        </BottomSheetScrollView>
-      </BottomSheetModal>
-    );
+            GOT IT
+          </Text>
+        </Pressable>
+      </BottomSheetScrollView>
+    </BottomSheetModal>
+  );
 }

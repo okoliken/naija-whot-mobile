@@ -1,9 +1,9 @@
 import { type Card } from "@/src/store/gameStore";
 import { Pressable, View } from "react-native";
-import { CardBack } from "./CardBack";
-import { CardFront } from "./CardFront";
+import { CardBack } from "../cards/CardBack";
+import { CardFront } from "../cards/CardFront";
 import { Section } from "./Section";
-import { StatusChip } from "./StatusChip";
+import { StatusChip } from "../../ui/StatusChip";
 
 type TableSectionProps = {
   deckCount: number;

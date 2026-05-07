@@ -12,7 +12,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { View } from "react-native";
 
-import { Font } from "./fonts";
+import { Font } from "../theme/fonts";
 
 type StatusChipProps = {
   label: string;

@@ -1,7 +1,7 @@
 import { Pressable, Text } from "react-native";
 
-import { useAppTheme } from "./ThemeContext";
-import { Font } from "./fonts";
+import { useAppTheme } from "../theme/ThemeContext";
+import { Font } from "../theme/fonts";
 
 type IconButtonProps = {
   icon: string;

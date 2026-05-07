@@ -1,8 +1,8 @@
 import { Text, View } from "react-native";
 import { cn } from "@/src/lib/cn";
-import { CardBack } from "./CardBack";
-import { useAppTheme } from "./ThemeContext";
-import { Font } from "./fonts";
+import { CardBack } from "../cards/CardBack";
+import { useAppTheme } from "../../theme/ThemeContext";
+import { Font } from "../../theme/fonts";
 
 type OpponentStackProps = {
   count: number;

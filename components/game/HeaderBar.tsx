@@ -19,7 +19,7 @@ type HeaderBarProps = {
   requestedShape: string | null;
   onRestart: () => void;
   onSettings: () => void;
-  onHowToPlay: () => void;
+  onBack: () => void;
 };
 
 type ChipVariant =
@@ -58,7 +58,7 @@ export function HeaderBar({
   requestedShape,
   onRestart,
   onSettings,
-  onHowToPlay,
+  onBack,
 }: HeaderBarProps) {
   const theme = useAppTheme();
   const titleFont = { fontFamily: Font.display.bold } as const;
@@ -169,7 +169,7 @@ export function HeaderBar({
         </View>
 
         <View className="flex-row gap-2.5 pt-0.5">
-          <IconButton icon="?" onPress={onHowToPlay} />
+          <IconButton icon="←" onPress={onBack} />
           <IconButton icon="⚙" onPress={onSettings} />
           <IconButton icon="↻" onPress={onRestart} />
         </View>

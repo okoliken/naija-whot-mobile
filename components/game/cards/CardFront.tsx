@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { SHAPE_LABELS, type Card } from "@/src/store/gameStore";
 import { cn } from "@/src/lib/cn";
-import { Font } from "./fonts";
+import { Font } from "../../theme/fonts";
 import { CARD_SIZE } from "./cardTokens";
 
 const SHAPE_GLYPH: Record<string, string> = {

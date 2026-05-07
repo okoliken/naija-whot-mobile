@@ -6,9 +6,9 @@ import {
 import { useCallback, useRef, type RefObject } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { BRAND } from "./theme";
-import { Font } from "./fonts";
-import { useAppTheme } from "./ThemeContext";
+import { BRAND } from "./theme/theme";
+import { Font } from "./theme/fonts";
+import { useAppTheme } from "./theme/ThemeContext";
 
 type Props = {
   onDismiss?: () => void;

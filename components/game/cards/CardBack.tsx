@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 import { cn } from "@/src/lib/cn";
-import { Font } from "./fonts";
+import { Font } from "../../theme/fonts";
 import { CARD_SIZE, CARD_SIZE_COMPACT } from "./cardTokens";
 
 type CardBackProps = {

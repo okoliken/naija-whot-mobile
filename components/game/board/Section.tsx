@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { View } from "react-native";
 
-import { useAppTheme } from "./ThemeContext";
+import { useAppTheme } from "../../theme/ThemeContext";
 
 type SectionProps = {
   children: ReactNode;

@@ -2,8 +2,8 @@ import { SHAPE_LABELS, type GameState } from "@/src/store/gameStore";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useCallback, useLayoutEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
-import { useAppTheme } from "./ThemeContext";
-import { Font } from "./fonts";
+import { useAppTheme } from "../../theme/ThemeContext";
+import { Font } from "../../theme/fonts";
 
 type Shape = Exclude<GameState["requestedShape"], null>;
 

@@ -9,10 +9,10 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { Font } from "../components/game/fonts";
-import { HowToPlayModal } from "../components/game/HowToPlayModal";
-import { BRAND } from "../components/game/theme";
-import { useAppTheme } from "../components/game/ThemeContext";
+import { Font } from "../components/theme/fonts";
+import { HowToPlayModal } from "../components/HowToPlayModal";
+import { BRAND } from "../components/theme/theme";
+import { useAppTheme } from "../components/theme/ThemeContext";
 
 export default function HomeScreen() {
   const theme = useAppTheme();

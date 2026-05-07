@@ -20,7 +20,7 @@ import type { ReactNode } from "react";
 import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { ThemeProvider, useAppTheme } from "../components/game/ThemeContext";
+import { ThemeProvider, useAppTheme } from "../components/theme/ThemeContext";
 
 import "../global.css";
 

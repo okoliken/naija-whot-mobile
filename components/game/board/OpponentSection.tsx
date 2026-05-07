@@ -1,8 +1,8 @@
 import { Text, View } from "react-native";
 import { OpponentStack } from "./OpponentStack";
 import { Section } from "./Section";
-import { useAppTheme } from "./ThemeContext";
-import { Font } from "./fonts";
+import { useAppTheme } from "../../theme/ThemeContext";
+import { Font } from "../../theme/fonts";
 import { type Player } from "@/src/store/gameStore";
 
 type OpponentSectionProps = {

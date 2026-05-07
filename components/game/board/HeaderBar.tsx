@@ -8,9 +8,9 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-import { IconButton } from "./IconButton";
-import { useAppTheme } from "./ThemeContext";
-import { Font } from "./fonts";
+import { IconButton } from "../../ui/IconButton";
+import { useAppTheme } from "../../theme/ThemeContext";
+import { Font } from "../../theme/fonts";
 
 type HeaderBarProps = {
   winner: Player | null;

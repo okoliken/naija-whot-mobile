@@ -1,9 +1,9 @@
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { useCallback, useLayoutEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
-import { BRAND } from "./theme";
-import { useAppTheme } from "./ThemeContext";
-import { Font } from "./fonts";
+import { BRAND } from "../../theme/theme";
+import { useAppTheme } from "../../theme/ThemeContext";
+import { Font } from "../../theme/fonts";
 
 export type RoundResult = {
   round: number;

@@ -1,15 +1,15 @@
 import { SHAPE_LABELS, gameShapes, useGameStore } from "@/src/store/gameStore";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
-import { CardFlyOverlay } from "../components/game/CardFlyOverlay";
-import { ControlCenterModal } from "../components/game/ControlCenterModal";
-import { HeaderBar } from "../components/game/HeaderBar";
-import { OpponentSection } from "../components/game/OpponentSection";
-import { PlayerSection } from "../components/game/PlayerSection";
-import { ShapePickerModal } from "../components/game/ShapePickerModal";
-import { TableSection } from "../components/game/TableSection";
-import { WinModal, type RoundResult } from "../components/game/WinModal";
-import { useAppTheme } from "../components/game/ThemeContext";
+import { CardFlyOverlay } from "../components/game/cards/CardFlyOverlay";
+import { ControlCenterModal } from "../components/game/modals/ControlCenterModal";
+import { HeaderBar } from "../components/game/board/HeaderBar";
+import { OpponentSection } from "../components/game/board/OpponentSection";
+import { PlayerSection } from "../components/game/board/PlayerSection";
+import { ShapePickerModal } from "../components/game/modals/ShapePickerModal";
+import { TableSection } from "../components/game/board/TableSection";
+import { WinModal, type RoundResult } from "../components/game/modals/WinModal";
+import { useAppTheme } from "../components/theme/ThemeContext";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollView } from "react-native";
 import {

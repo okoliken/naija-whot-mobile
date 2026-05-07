@@ -1,10 +1,10 @@
 import { type Card } from "@/src/store/gameStore";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { CardFront } from "./CardFront";
+import { CardFront } from "../cards/CardFront";
 import { Section } from "./Section";
-import { isPlayableCard } from "./isPlayableCard";
-import { useAppTheme } from "./ThemeContext";
-import { Font } from "./fonts";
+import { isPlayableCard } from "../cards/isPlayableCard";
+import { useAppTheme } from "../../theme/ThemeContext";
+import { Font } from "../../theme/fonts";
 
 type PlayerSectionProps = {
   humanHand: Card[];

@@ -1,5 +1,5 @@
-import { useGameStore } from "@/src/store/gameStore";
 import { hasSeenIntro, markIntroSeen } from "@/src/lib/firstLaunch";
+import { useGameStore } from "@/src/store/gameStore";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
@@ -9,8 +9,9 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { Font } from "../components/theme/fonts";
+import { CardFront } from "../components/game/cards/CardFront";
 import { HowToPlayModal } from "../components/HowToPlayModal";
+import { Font } from "../components/theme/fonts";
 import { BRAND } from "../components/theme/theme";
 import { useAppTheme } from "../components/theme/ThemeContext";
 
@@ -66,29 +67,41 @@ export default function HomeScreen() {
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
-          <View
-            style={{
-              width: 96,
-              height: 132,
-              borderRadius: 12,
-              backgroundColor: BRAND,
-              alignItems: "center",
-              justifyContent: "center",
-              transform: [{ rotate: "-6deg" }],
-              marginBottom: 28,
-              ...theme.panelLift,
-            }}
-          >
-            <Text
+          <View className="flex-row gap-0.5">
+            <View
               style={{
-                fontFamily: Font.display.bold,
-                fontSize: 22,
-                letterSpacing: 1.6,
-                color: "#fafafa",
+                width: 110,
+                height: 150,
+                borderRadius: 12,
+                backgroundColor: BRAND,
+                alignItems: "center",
+                justifyContent: "center",
+                transform: [{ rotate: "-6deg" }],
+                marginBottom: 28,
+                ...theme.panelLift,
               }}
             >
-              WHOT
-            </Text>
+              <Text
+                style={{
+                  fontFamily: Font.display.bold,
+                  fontSize: 22,
+                  letterSpacing: 1.6,
+                  color: "#fafafa",
+                }}
+              >
+                WHOT
+              </Text>
+            </View>
+            <View
+              style={{
+                borderRadius: 12,
+                transform: [{ rotate: "6deg" }],
+                marginBottom: 28,
+                ...theme.panelLift,
+              }}
+            >
+              <CardFront card={{ id: "sample", shape: "star", value: 4 }} />
+            </View>
           </View>
           <Text
             style={{
@@ -127,6 +140,7 @@ export default function HomeScreen() {
               opacity: pressed ? 0.9 : 1,
               ...theme.panelLift,
             })}
+            className="border border-dashed border-white/45 p-1.5"
           >
             <Text
               style={{
@@ -162,6 +176,7 @@ export default function HomeScreen() {
               borderColor: theme.border,
               opacity: pressed ? 0.7 : 1,
             })}
+            className="border border-dashed border-white/45 p-1.5"
           >
             <Text
               style={{

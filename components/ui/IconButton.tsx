@@ -1,14 +1,17 @@
-import { Pressable, Text } from "react-native";
+import Feather from "@expo/vector-icons/Feather";
+import type { ComponentProps } from "react";
+import { Pressable } from "react-native";
 
 import { useAppTheme } from "../theme/ThemeContext";
-import { Font } from "../theme/fonts";
+
+type FeatherName = ComponentProps<typeof Feather>["name"];
 
 type IconButtonProps = {
-  icon: string;
+  name: FeatherName;
   onPress?: () => void;
 };
 
-export function IconButton({ icon, onPress }: IconButtonProps) {
+export function IconButton({ name, onPress }: IconButtonProps) {
   const theme = useAppTheme();
   return (
     <Pressable
@@ -20,7 +23,7 @@ export function IconButton({ icon, onPress }: IconButtonProps) {
         ...theme.panelLiftSubtle,
       }}
     >
-      <Text style={{ fontFamily: Font.ui.semi, fontSize: 17, color: theme.iconGlyph }}>{icon}</Text>
+      <Feather name={name} size={18} color={theme.iconGlyph} />
     </Pressable>
   );
 }

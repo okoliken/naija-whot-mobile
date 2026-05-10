@@ -106,29 +106,15 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
           style={[
             fontDisplay,
             {
-              marginBottom: 6,
               textAlign: "center",
               fontSize: 26,
               lineHeight: 30,
-              letterSpacing: 1.4,
+              letterSpacing: 0.8,
               color: theme.textPrimary,
             },
           ]}
         >
-          How to Play
-        </Text>
-        <Text
-          style={[
-            fontReg,
-            {
-              textAlign: "center",
-              fontSize: 12,
-              letterSpacing: 1.6,
-              color: theme.textMuted,
-            },
-          ]}
-        >
-          NAIJA WHOT · CLASSIC RULES
+          How to play
         </Text>
       </View>
 
@@ -143,15 +129,10 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         <Text
           style={[
             fontSemi,
-            {
-              marginBottom: 8,
-              fontSize: 11,
-              letterSpacing: 2.4,
-              color: theme.textMuted,
-            },
+            { marginBottom: 8, fontSize: 13, color: theme.textSecondary },
           ]}
         >
-          THE GOAL
+          The goal
         </Text>
         <View
           className="mb-6 rounded-2xl px-4 py-4"
@@ -180,15 +161,10 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         <Text
           style={[
             fontSemi,
-            {
-              marginBottom: 8,
-              fontSize: 11,
-              letterSpacing: 2.4,
-              color: theme.textMuted,
-            },
+            { marginBottom: 8, fontSize: 13, color: theme.textSecondary },
           ]}
         >
-          THE FIVE SHAPES
+          The five shapes
         </Text>
         <View
           className="mb-6 rounded-2xl px-4 py-4"
@@ -217,15 +193,10 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         <Text
           style={[
             fontSemi,
-            {
-              marginBottom: 12,
-              fontSize: 11,
-              letterSpacing: 2.4,
-              color: theme.textMuted,
-            },
+            { marginBottom: 12, fontSize: 13, color: theme.textSecondary },
           ]}
         >
-          SPECIAL CARDS
+          Special cards
         </Text>
         <View className="mb-6 gap-2">
           {SPECIAL_CARDS.map((card) => (
@@ -286,15 +257,10 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         <Text
           style={[
             fontSemi,
-            {
-              marginBottom: 8,
-              fontSize: 11,
-              letterSpacing: 2.4,
-              color: theme.textMuted,
-            },
+            { marginBottom: 8, fontSize: 13, color: theme.textSecondary },
           ]}
         >
-          TIP
+          Tip
         </Text>
         <View
           className="mb-8 rounded-2xl px-4 py-4"

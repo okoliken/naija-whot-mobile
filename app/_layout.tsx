@@ -17,19 +17,22 @@ import {
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { StatusBar } from "expo-status-bar";
 import type { ReactNode } from "react";
-import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { ThemeProvider, useAppTheme } from "../components/theme/ThemeContext";
+import {
+  ThemeProvider,
+  useAppTheme,
+  useThemeMode,
+} from "../components/theme/ThemeContext";
 
 import "../global.css";
 
 function ThemedRoot({ children }: { children: ReactNode }) {
   const t = useAppTheme();
-  const scheme = useColorScheme();
+  const { mode } = useThemeMode();
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: t.appBg }}>
-      <StatusBar style={scheme === "light" ? "dark" : "light"} />
+      <StatusBar style={mode === "light" ? "dark" : "light"} />
       {children}
     </GestureHandlerRootView>
   );

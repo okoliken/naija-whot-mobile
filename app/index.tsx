@@ -40,6 +40,10 @@ export default function HomeScreen() {
     router.push("/game");
   }, [startGame]);
 
+  const handlePlayPvp = useCallback(() => {
+    router.push("/multiplayer");
+  }, []);
+
   const handleHowToPlay = useCallback(() => {
     howToPlayRef.current?.present();
   }, []);
@@ -101,14 +105,13 @@ export default function HomeScreen() {
           <Text
             style={{
               fontFamily: Font.ui.regular,
-              marginTop: 12,
-              fontSize: 11,
-              letterSpacing: 2.8,
+              marginTop: 10,
+              fontSize: 13,
               color: theme.textMuted,
               textAlign: "center",
             }}
           >
-            CLASSIC TABLETOP · ONE DECK
+            Single deck. No stress.
           </Text>
         </View>
 
@@ -139,17 +142,17 @@ export default function HomeScreen() {
               style={{
                 fontFamily: Font.ui.regular,
                 marginTop: 6,
-                fontSize: 11,
-                letterSpacing: 1.2,
-                color: "rgba(250,250,250,0.72)",
+                fontSize: 12,
+                color: "rgba(250,250,250,0.7)",
               }}
             >
-              Single player · 1 vs AI
+              Solo · against the house
             </Text>
           </Pressable>
 
-          <View
-            style={{
+          <Pressable
+            onPress={handlePlayPvp}
+            style={({ pressed }) => ({
               alignItems: "center",
               borderRadius: 18,
               paddingVertical: 20,
@@ -157,15 +160,15 @@ export default function HomeScreen() {
               backgroundColor: theme.surfaceAlt,
               borderWidth: 1,
               borderColor: theme.border,
-              opacity: 0.65,
-            }}
+              opacity: pressed ? 0.7 : 1,
+            })}
           >
             <Text
               style={{
                 fontFamily: Font.ui.bold,
                 fontSize: 14,
                 letterSpacing: 2.8,
-                color: theme.textSecondary,
+                color: theme.textPrimary,
               }}
             >
               PLAY VS PLAYER
@@ -174,14 +177,13 @@ export default function HomeScreen() {
               style={{
                 fontFamily: Font.ui.regular,
                 marginTop: 6,
-                fontSize: 10,
-                letterSpacing: 1.8,
+                fontSize: 12,
                 color: theme.textMuted,
               }}
             >
-              COMING SOON
+              Friend code · same room
             </Text>
-          </View>
+          </Pressable>
 
           <Pressable
             onPress={handleHowToPlay}

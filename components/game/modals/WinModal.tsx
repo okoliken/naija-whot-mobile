@@ -62,7 +62,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
           style={[
             fontDisplay,
             {
-              marginBottom: 4,
+              marginBottom: 24,
               textAlign: "center",
               fontSize: 34,
               lineHeight: 40,
@@ -71,11 +71,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
             },
           ]}
         >
-          {isWin ? "You won!" : "You lost."}
-        </Text>
-
-        <Text style={[fontSemi, { marginBottom: 24, textAlign: "center", fontSize: 11, letterSpacing: 2.4, color: theme.textMuted }]}>
-          {isWin ? "WELL PLAYED" : "BETTER LUCK NEXT TIME"}
+          {isWin ? "You won." : "You lost."}
         </Text>
 
         {/* Current round stats */}
@@ -88,8 +84,8 @@ export function WinModal({ winner, history, onRestart }: Props) {
               <Text style={[fontBold, { fontSize: 24, color: theme.textPrimary }]}>
                 {history[history.length - 1]?.humanCards ?? 0}
               </Text>
-              <Text style={[fontReg, { fontSize: 10, letterSpacing: 3.2, color: theme.textMuted }]}>
-                YOUR CARDS
+              <Text style={[fontReg, { fontSize: 11, color: theme.textMuted }]}>
+                Your cards
               </Text>
             </View>
             <View
@@ -100,8 +96,8 @@ export function WinModal({ winner, history, onRestart }: Props) {
               <Text style={[fontBold, { fontSize: 24, color: theme.textPrimary }]}>
                 {history[history.length - 1]?.computerCards ?? 0}
               </Text>
-              <Text style={[fontReg, { fontSize: 10, letterSpacing: 3.2, color: theme.textMuted }]}>
-                CPU CARDS
+              <Text style={[fontReg, { fontSize: 11, color: theme.textMuted }]}>
+                CPU cards
               </Text>
             </View>
           </View>
@@ -119,8 +115,8 @@ export function WinModal({ winner, history, onRestart }: Props) {
         {/* History */}
         {history.length > 1 && (
           <>
-            <Text style={[fontSemi, { marginBottom: 12, fontSize: 11, letterSpacing: 2.4, color: theme.textMuted }]}>
-              ROUND HISTORY
+            <Text style={[fontSemi, { marginBottom: 12, fontSize: 13, color: theme.textSecondary }]}>
+              Round history
             </Text>
             <View className="gap-2">
               {[...history].reverse().map((r) => (

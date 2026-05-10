@@ -12,3 +12,11 @@ export const SHAPE_LABELS: Record<Shape, string> = {
   square: "Square",
   whot: "Whot",
 };
+
+export const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"];
+
+export const DIFFICULTY_DESC: Record<Difficulty, string> = {
+  easy: "CPU plays randomly",
+  medium: "CPU plays smart",
+  hard: "CPU plays to win",
+};

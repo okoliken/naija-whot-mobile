@@ -1,6 +1,6 @@
 import { type Player } from "@/src/store/gameStore";
 import { useEffect, useRef } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -61,9 +61,7 @@ export function HeaderBar({
   onBack,
 }: HeaderBarProps) {
   const theme = useAppTheme();
-  const titleFont = { fontFamily: Font.display.bold } as const;
   const labelFont = { fontFamily: Font.ui.semi } as const;
-  const subtitleFont = { fontFamily: Font.ui.regular } as const;
 
   const { variant, label } = getChip(winner, turn, pendingPick, requestedShape);
   const chipStyles: Record<
@@ -112,67 +110,32 @@ export function HeaderBar({
   }));
 
   return (
-    <View
-      className="rounded-3xl border px-4 py-4"
-      style={{
-        borderColor: theme.border,
-        backgroundColor: theme.headerSurface,
-        ...theme.panelLift,
-      }}
-    >
-      <View className="flex-row items-start justify-between gap-3">
-        <View className="min-w-0 flex-1 pr-2">
-          <Animated.Text
-            style={[
-              titleFont,
-              { fontSize: 23, color: theme.textPrimary, letterSpacing: 0.8 },
-            ]}
-          >
-            Naija Whot
-          </Animated.Text>
-          <Text
-            style={[
-              subtitleFont,
-              {
-                marginTop: 3,
-                fontSize: 11,
-                color: theme.textMuted,
-                letterSpacing: 0.4,
-              },
-            ]}
-            numberOfLines={1}
-          >
-            Classic tabletop · one deck
-          </Text>
+    <View className="flex-row items-center justify-between gap-3 px-1 pt-1">
+      <Animated.View
+        style={[
+          chipAnim,
+          {
+            alignSelf: "flex-start",
+            borderRadius: 999,
+            borderWidth: 1,
+            paddingHorizontal: 14,
+            paddingVertical: 8,
+            backgroundColor: colors.bg,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        <Animated.Text
+          style={[labelFont, { fontSize: 12, color: colors.text }]}
+        >
+          {label}
+        </Animated.Text>
+      </Animated.View>
 
-          <Animated.View
-            style={[
-              chipAnim,
-              {
-                marginTop: 10,
-                alignSelf: "flex-start",
-                borderRadius: 999,
-                borderWidth: 1,
-                paddingHorizontal: 13,
-                paddingVertical: 7,
-                backgroundColor: colors.bg,
-                borderColor: colors.border,
-              },
-            ]}
-          >
-            <Animated.Text
-              style={[labelFont, { fontSize: 12, color: colors.text }]}
-            >
-              {label}
-            </Animated.Text>
-          </Animated.View>
-        </View>
-
-        <View className="flex-row gap-2.5 pt-0.5">
-          <IconButton icon="←" onPress={onBack} />
-          <IconButton icon="⚙" onPress={onSettings} />
-          <IconButton icon="↻" onPress={onRestart} />
-        </View>
+      <View className="flex-row gap-2.5">
+        <IconButton name="arrow-left" onPress={onBack} />
+        <IconButton name="settings" onPress={onSettings} />
+        <IconButton name="rotate-cw" onPress={onRestart} />
       </View>
     </View>
   );

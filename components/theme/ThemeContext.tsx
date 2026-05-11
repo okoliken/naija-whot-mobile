@@ -1,12 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, use, useEffect, useState, type ReactNode } from "react";
 import { useColorScheme } from "react-native";
 
 import { loadThemeMode, saveThemeMode, type ThemeMode } from "@/src/lib/themePreference";
@@ -40,37 +32,34 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const setMode = useCallback((next: ThemeMode) => {
+  const setMode = (next: ThemeMode) => {
     setModeState(next);
     saveThemeMode(next);
-  }, []);
+  };
 
-  const toggleMode = useCallback(() => {
+  const toggleMode = () => {
     setModeState((prev) => {
       const next: ThemeMode = prev === "light" ? "dark" : "light";
       saveThemeMode(next);
       return next;
     });
-  }, []);
+  };
 
-  const value = useMemo<ThemeContextValue>(
-    () => ({
-      theme: mode === "light" ? lightTheme : darkTheme,
-      mode,
-      setMode,
-      toggleMode,
-    }),
-    [mode, setMode, toggleMode],
-  );
+  const value: ThemeContextValue = {
+    theme: mode === "light" ? lightTheme : darkTheme,
+    mode,
+    setMode,
+    toggleMode,
+  };
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return <ThemeContext value={value}>{children}</ThemeContext>;
 }
 
 export function useAppTheme(): AppTheme {
-  return useContext(ThemeContext).theme;
+  return use(ThemeContext).theme;
 }
 
 export function useThemeMode() {
-  const { mode, setMode, toggleMode } = useContext(ThemeContext);
+  const { mode, setMode, toggleMode } = use(ThemeContext);
   return { mode, setMode, toggleMode };
 }

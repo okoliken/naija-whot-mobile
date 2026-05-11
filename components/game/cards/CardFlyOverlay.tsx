@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
+  withSequence,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { CardFront } from "./CardFront";
 import type { Card } from "@/src/store/gameStore";
 
@@ -15,11 +17,19 @@ type Props = {
   origin: "human" | "computer";
 };
 
+// Aligns the fly card with the table top card's landing spot.
+// TableSection container is max 320px wide, centered. The top card sits
+// `right-5` (20px) inside it, is 116px wide, and is rotated 3deg.
+const TABLE_CARD_WIDTH = 116;
+const TABLE_CARD_RIGHT_INSET = 20;
+const TABLE_CONTAINER_MAX = 320;
+const TABLE_CONTAINER_HORIZONTAL_PADDING = 32;
+const TABLE_CARD_ROTATION = 3;
+
 export function CardFlyOverlay({ card, origin }: Props) {
-  const { height } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
   const [displayCard, setDisplayCard] = useState<Card | null>(null);
   const prevId = useRef<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const ty = useSharedValue(0);
   const tx = useSharedValue(0);
@@ -31,13 +41,20 @@ export function CardFlyOverlay({ card, origin }: Props) {
     if (!card || card.id === prevId.current) return;
     prevId.current = card.id;
 
-    if (timerRef.current) clearTimeout(timerRef.current);
+    // Compute the landing translateX so the overlay aligns with the
+    // table card, which is offset right of screen-center.
+    const containerWidth = Math.min(
+      TABLE_CONTAINER_MAX,
+      width - TABLE_CONTAINER_HORIZONTAL_PADDING,
+    );
+    const finalX =
+      containerWidth / 2 -
+      (TABLE_CARD_RIGHT_INSET + TABLE_CARD_WIDTH / 2);
 
     // Starting position: hand area (human) or opponent area (computer)
     const fromY = origin === "human" ? height * 0.33 : -height * 0.23;
-    const fromX = (Math.random() * 2 - 1) * 38;
+    const fromX = finalX + (Math.random() * 2 - 1) * 38;
     const fromRot = (Math.random() * 2 - 1) * 30;
-    const finalRot = (Math.random() * 2 - 1) * 6;
 
     ty.value = fromY;
     tx.value = fromX;
@@ -47,18 +64,28 @@ export function CardFlyOverlay({ card, origin }: Props) {
 
     setDisplayCard(card);
 
-    op.value = withTiming(1, { duration: 80 });
+    // Springs deliberately overlap with the fade-out tail (~450ms) so
+    // the card still has a touch of residual motion as it dissolves.
     ty.value = withSpring(0, { stiffness: 195, damping: 21, mass: 0.75 });
-    tx.value = withSpring(0, { stiffness: 215, damping: 25 });
-    rot.value = withSpring(finalRot, { stiffness: 145, damping: 17 });
+    tx.value = withSpring(finalX, { stiffness: 215, damping: 25 });
+    rot.value = withSpring(TABLE_CARD_ROTATION, {
+      stiffness: 145,
+      damping: 17,
+    });
     sc.value = withSpring(1, { stiffness: 240, damping: 22 });
 
-    timerRef.current = setTimeout(() => {
-      op.value = withTiming(0, { duration: 180 }, (finished) => {
-        if (finished) runOnJS(setDisplayCard)(null);
-      });
-    }, 450);
-  }, [card, origin, height]);
+    // Fade in -> hold -> fade out, fully sequenced on the UI thread so
+    // the hide is immune to JS-thread stalls (e.g. AI turn compute).
+    op.value = withSequence(
+      withTiming(1, { duration: 80 }),
+      withDelay(
+        370,
+        withTiming(0, { duration: 180 }, (finished) => {
+          if (finished) scheduleOnRN(setDisplayCard, null);
+        }),
+      ),
+    );
+  }, [card, origin, height, width]);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [

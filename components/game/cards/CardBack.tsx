@@ -10,7 +10,12 @@ type CardBackProps = {
   compact?: boolean;
 };
 
-export function CardBack({ count, hint, rotated, compact = false }: CardBackProps) {
+export function CardBack({
+  count,
+  hint,
+  rotated,
+  compact = false,
+}: CardBackProps) {
   const fontRegular = { fontFamily: Font.card.regular } as const;
   const fontBold = { fontFamily: Font.card.bold } as const;
   const fontMark = { fontFamily: Font.display.bold } as const;
@@ -24,12 +29,21 @@ export function CardBack({ count, hint, rotated, compact = false }: CardBackProp
       )}
     >
       <View className="flex-1 items-center justify-center rounded-xl border border-dashed border-white/45">
-        <Text style={[fontMark, { fontSize: 15, letterSpacing: 2.2, color: "#fafaf9" }]} numberOfLines={1}>
+        <Text
+          style={[
+            fontMark,
+            { fontSize: 15, letterSpacing: 2.2, color: "#fafaf9" },
+          ]}
+          numberOfLines={1}
+        >
           WHOT
         </Text>
         {typeof count === "number" ? (
           <>
-            <Text style={fontBold} className="mt-1.5 text-3xl leading-none text-zinc-100">
+            <Text
+              style={fontBold}
+              className="mt-1.5 text-3xl leading-none text-zinc-100"
+            >
               {count}
             </Text>
             <Text

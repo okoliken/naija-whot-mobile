@@ -20,3 +20,25 @@ export const Font = {
     displayItalic: "CormorantGaramond_700Bold_Italic",
   },
 } as const;
+
+/**
+ * Pre-built `{ fontFamily }` style objects keyed off `Font`. Use these in
+ * `style={[FontStyle.ui.bold, { fontSize: 14 }]}` to avoid re-declaring the
+ * same `{ fontFamily: ... } as const` boilerplate in every component.
+ */
+export const FontStyle = {
+  ui: {
+    regular: { fontFamily: Font.ui.regular },
+    semi: { fontFamily: Font.ui.semi },
+    bold: { fontFamily: Font.ui.bold },
+  },
+  display: {
+    regular: { fontFamily: Font.display.regular },
+    bold: { fontFamily: Font.display.bold },
+  },
+  card: {
+    regular: { fontFamily: Font.card.regular },
+    bold: { fontFamily: Font.card.bold },
+    displayItalic: { fontFamily: Font.card.displayItalic },
+  },
+} as const;

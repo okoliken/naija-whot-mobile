@@ -1,6 +1,6 @@
 import { type Player } from "@/src/store/gameStore";
 import { useEffect, useRef } from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -11,6 +11,7 @@ import Animated, {
 import { IconButton } from "../../ui/IconButton";
 import { useAppTheme } from "../../theme/ThemeContext";
 import { Font } from "../../theme/fonts";
+import { getChipState, type ChipVariant } from "./headerChip";
 
 type HeaderBarProps = {
   winner: Player | null;
@@ -21,35 +22,6 @@ type HeaderBarProps = {
   onSettings: () => void;
   onBack: () => void;
 };
-
-type ChipVariant =
-  | "your-turn"
-  | "penalty"
-  | "shape"
-  | "cpu"
-  | "game-win"
-  | "game-loss";
-
-function getChip(
-  winner: Player | null,
-  turn: Player,
-  pendingPick: number,
-  requestedShape: string | null,
-): { variant: ChipVariant; label: string } {
-  if (winner === "human")
-    return { variant: "game-win", label: "You won this round" };
-  if (winner === "computer")
-    return { variant: "game-loss", label: "CPU won this round" };
-  if (turn === "computer") return { variant: "cpu", label: "CPU thinking..." };
-  if (pendingPick > 0)
-    return {
-      variant: "penalty",
-      label: `Draw ${pendingPick} card${pendingPick !== 1 ? "s" : ""}`,
-    };
-  if (requestedShape)
-    return { variant: "shape", label: `Shape: ${requestedShape}` };
-  return { variant: "your-turn", label: "✓ Your turn" };
-}
 
 export function HeaderBar({
   winner,
@@ -62,8 +34,15 @@ export function HeaderBar({
 }: HeaderBarProps) {
   const theme = useAppTheme();
   const labelFont = { fontFamily: Font.ui.semi } as const;
+  const wordmarkFont = { fontFamily: Font.display.bold } as const;
+  const subtitleFont = { fontFamily: Font.ui.regular } as const;
 
-  const { variant, label } = getChip(winner, turn, pendingPick, requestedShape);
+  const { variant, label, pulse } = getChipState({
+    winner,
+    turn,
+    pendingPick,
+    requestedShape,
+  });
   const chipStyles: Record<
     ChipVariant,
     { bg: string; border: string; text: string }
@@ -72,8 +51,6 @@ export function HeaderBar({
     penalty: theme.chipPenalty,
     shape: theme.chipShape,
     cpu: theme.chipCpu,
-    "game-win": theme.chipYourTurn,
-    "game-loss": theme.chipPenalty,
   };
   const colors = chipStyles[variant];
   const prevLabel = useRef(label);
@@ -87,10 +64,10 @@ export function HeaderBar({
     opacity.value = withTiming(1, { duration: 220 });
   }, [label, opacity]);
 
-  // Pulse scale when penalty is active
+  // Pulse scale when a pending penalty is active
   const scale = useSharedValue(1);
   useEffect(() => {
-    if (variant === "penalty") {
+    if (pulse) {
       scale.value = withRepeat(
         withSequence(
           withTiming(1.05, { duration: 420 }),
@@ -102,7 +79,7 @@ export function HeaderBar({
     } else {
       scale.value = withTiming(1, { duration: 180 });
     }
-  }, [variant, scale]);
+  }, [pulse, scale]);
 
   const chipAnim = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -110,16 +87,58 @@ export function HeaderBar({
   }));
 
   return (
-    <View className="flex-row items-center justify-between gap-3 px-1 pt-1">
+    <View
+      className="rounded-3xl border px-4 py-3.5"
+      style={{
+        borderColor: theme.border,
+        backgroundColor: theme.headerSurface,
+        ...theme.panelLift,
+      }}
+    >
+      <View className="flex-row items-center justify-between gap-3">
+        <View className="min-w-0 flex-1 pr-2">
+          <Text
+            style={[
+              wordmarkFont,
+              { fontSize: 18, color: theme.textPrimary, letterSpacing: 1.2 },
+            ]}
+            numberOfLines={1}
+          >
+            Naija Whot
+          </Text>
+          <Text
+            style={[
+              subtitleFont,
+              {
+                marginTop: 2,
+                fontSize: 10,
+                color: theme.textMuted,
+                letterSpacing: 0.6,
+              },
+            ]}
+            numberOfLines={1}
+          >
+            Single deck · no stress
+          </Text>
+        </View>
+
+        <View className="flex-row gap-2">
+          <IconButton name="arrow-left" onPress={onBack} />
+          <IconButton name="settings" onPress={onSettings} />
+          <IconButton name="rotate-cw" onPress={onRestart} />
+        </View>
+      </View>
+
       <Animated.View
         style={[
           chipAnim,
           {
+            marginTop: 10,
             alignSelf: "flex-start",
             borderRadius: 999,
             borderWidth: 1,
-            paddingHorizontal: 14,
-            paddingVertical: 8,
+            paddingHorizontal: 13,
+            paddingVertical: 7,
             backgroundColor: colors.bg,
             borderColor: colors.border,
           },
@@ -131,12 +150,6 @@ export function HeaderBar({
           {label}
         </Animated.Text>
       </Animated.View>
-
-      <View className="flex-row gap-2.5">
-        <IconButton name="arrow-left" onPress={onBack} />
-        <IconButton name="settings" onPress={onSettings} />
-        <IconButton name="rotate-cw" onPress={onRestart} />
-      </View>
     </View>
   );
 }

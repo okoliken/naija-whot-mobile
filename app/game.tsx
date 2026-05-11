@@ -44,13 +44,13 @@ export default function GameScreen() {
 
   const controlCenterRef = useRef<BottomSheetModal>(null);
 
-  const handleBack = useCallback(() => {
+  const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
     } else {
       router.replace("/");
     }
-  }, []);
+  }
 
   // Game history
   const roundCountRef = useRef(1);

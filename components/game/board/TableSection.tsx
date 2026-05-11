@@ -39,16 +39,25 @@ export function TableSection({
               transform: [{ scale: isHumanTurn && pressed ? 0.96 : 1 }],
             })}
           >
-            <CardBack count={deckCount} hint={isHumanTurn ? drawHint : "Market"} />
+            <CardBack
+              count={deckCount}
+              hint={isHumanTurn ? drawHint : "Market"}
+            />
           </Pressable>
-          <View className="absolute right-5 top-1 rotate-3">{topCard ? <CardFront card={topCard} /> : <CardBack />}</View>
+          <View className="absolute right-5 top-1 rotate-3">
+            {topCard ? <CardFront card={topCard} /> : <CardBack />}
+          </View>
         </View>
       </View>
 
       <View className="mt-2 flex-row flex-wrap items-center justify-center gap-2">
         <StatusChip label={`Need: ${needLabel}`} />
-        {pendingPick > 0 ? <StatusChip label={`Pick chain: ${pendingPick}`} accent="warning" /> : null}
-        {skipsLabel !== "0" ? <StatusChip label={`Skips: ${skipsLabel}`} /> : null}
+        {pendingPick > 0 ? (
+          <StatusChip label={`Pick chain: ${pendingPick}`} accent="warning" />
+        ) : null}
+        {skipsLabel !== "0" ? (
+          <StatusChip label={`Skips: ${skipsLabel}`} />
+        ) : null}
       </View>
     </Section>
   );

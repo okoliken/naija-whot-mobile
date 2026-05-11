@@ -29,10 +29,23 @@ export function PlayerSection({
   return (
     <Section>
       <View className="mb-3 flex-row items-baseline justify-between gap-3">
-        <Text style={{ fontFamily: Font.display.bold, fontSize: 17, color: theme.textPrimary, letterSpacing: 0.9 }}>
+        <Text
+          style={{
+            fontFamily: Font.display.bold,
+            fontSize: 17,
+            color: theme.textPrimary,
+            letterSpacing: 0.9,
+          }}
+        >
           Your hand
         </Text>
-        <Text style={{ fontFamily: Font.ui.regular, fontSize: 12, color: theme.textMuted }}>
+        <Text
+          style={{
+            fontFamily: Font.ui.regular,
+            fontSize: 12,
+            color: theme.textMuted,
+          }}
+        >
           {humanHand.length} {humanHand.length === 1 ? "card" : "cards"}
         </Text>
       </View>
@@ -40,10 +53,19 @@ export function PlayerSection({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 8, gap: 12, paddingVertical: 8 }}
+        contentContainerStyle={{
+          paddingHorizontal: 8,
+          gap: 12,
+          paddingVertical: 8,
+        }}
       >
         {humanHand.map((card, index) => {
-          const legal = isPlayableCard(card, topCard, requestedShape, pendingPick);
+          const legal = isPlayableCard(
+            card,
+            topCard,
+            requestedShape,
+            pendingPick,
+          );
           const interactive = isHumanTurn && legal;
           return (
             <Pressable
@@ -58,17 +80,33 @@ export function PlayerSection({
                 opacity: interactive ? (pressed ? 0.88 : 1) : 0.38,
               })}
             >
-              <CardFront card={card} rotated={index % 2 === 0 ? "-rotate-[2deg]" : "rotate-[2deg]"} />
+              <CardFront
+                card={card}
+                rotated={index % 2 === 0 ? "-rotate-[2deg]" : "rotate-[2deg]"}
+              />
             </Pressable>
           );
         })}
       </ScrollView>
 
       {message ? (
-        <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border }}>
+        <View
+          style={{
+            marginTop: 12,
+            paddingTop: 12,
+            borderTopWidth: 1,
+            borderTopColor: theme.border,
+          }}
+        >
           <Text
             numberOfLines={2}
-            style={{ textAlign: "center", fontFamily: Font.ui.regular, fontSize: 12.5, lineHeight: 18, color: theme.textSecondary }}
+            style={{
+              textAlign: "center",
+              fontFamily: Font.ui.regular,
+              fontSize: 12.5,
+              lineHeight: 18,
+              color: theme.textSecondary,
+            }}
           >
             {message}
           </Text>

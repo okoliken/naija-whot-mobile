@@ -7,7 +7,7 @@ import { useCallback, useRef, type RefObject } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { BRAND } from "./theme/theme";
-import { Font } from "./theme/fonts";
+import { FontStyle } from "./theme/fonts";
 import { useAppTheme } from "./theme/ThemeContext";
 
 type Props = {
@@ -55,11 +55,6 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
   const internalRef = useRef<BottomSheetModal>(null);
   const sheetRef = ref ?? internalRef;
 
-  const fontDisplay = { fontFamily: Font.display.bold } as const;
-  const fontBold = { fontFamily: Font.ui.bold } as const;
-  const fontSemi = { fontFamily: Font.ui.semi } as const;
-  const fontReg = { fontFamily: Font.ui.regular } as const;
-
   const renderBackdrop = useCallback(
     (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
       <BottomSheetBackdrop
@@ -104,7 +99,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
       >
         <Text
           style={[
-            fontDisplay,
+            FontStyle.display.bold,
             {
               textAlign: "center",
               fontSize: 26,
@@ -128,7 +123,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         {/* Goal */}
         <Text
           style={[
-            fontSemi,
+            FontStyle.ui.semi,
             { marginBottom: 8, fontSize: 13, color: theme.textSecondary },
           ]}
         >
@@ -144,15 +139,15 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         >
           <Text
             style={[
-              fontReg,
+              FontStyle.ui.regular,
               { fontSize: 14, lineHeight: 21, color: theme.textSecondary },
             ]}
           >
             Be the first to empty your hand. Each turn, play one card that
             matches the top card by{" "}
-            <Text style={[fontBold, { color: theme.textPrimary }]}>shape</Text>{" "}
+            <Text style={[FontStyle.ui.bold, { color: theme.textPrimary }]}>shape</Text>{" "}
             or{" "}
-            <Text style={[fontBold, { color: theme.textPrimary }]}>number</Text>
+            <Text style={[FontStyle.ui.bold, { color: theme.textPrimary }]}>number</Text>
             . Can't play? Draw from the market.
           </Text>
         </View>
@@ -160,7 +155,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         {/* Shapes */}
         <Text
           style={[
-            fontSemi,
+            FontStyle.ui.semi,
             { marginBottom: 8, fontSize: 13, color: theme.textSecondary },
           ]}
         >
@@ -176,13 +171,13 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         >
           <Text
             style={[
-              fontReg,
+              FontStyle.ui.regular,
               { fontSize: 14, lineHeight: 21, color: theme.textSecondary },
             ]}
           >
             Circle · Triangle · Cross · Square · Star.{"\n"}
             The{" "}
-            <Text style={[fontBold, { color: theme.textPrimary }]}>
+            <Text style={[FontStyle.ui.bold, { color: theme.textPrimary }]}>
               Whot
             </Text>{" "}
             card is a sixth, special suit — it's a wild.
@@ -192,7 +187,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         {/* Special cards */}
         <Text
           style={[
-            fontSemi,
+            FontStyle.ui.semi,
             { marginBottom: 12, fontSize: 13, color: theme.textSecondary },
           ]}
         >
@@ -215,7 +210,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
               >
                 <Text
                   style={[
-                    fontBold,
+                    FontStyle.ui.bold,
                     { fontSize: 18, color: "#fafafa", letterSpacing: 0.4 },
                   ]}
                 >
@@ -225,7 +220,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
               <View className="flex-1">
                 <Text
                   style={[
-                    fontBold,
+                    FontStyle.ui.bold,
                     {
                       fontSize: 13,
                       color: theme.textPrimary,
@@ -237,7 +232,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
                 </Text>
                 <Text
                   style={[
-                    fontReg,
+                    FontStyle.ui.regular,
                     {
                       marginTop: 2,
                       fontSize: 12,
@@ -256,7 +251,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         {/* Tip */}
         <Text
           style={[
-            fontSemi,
+            FontStyle.ui.semi,
             { marginBottom: 8, fontSize: 13, color: theme.textSecondary },
           ]}
         >
@@ -272,7 +267,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         >
           <Text
             style={[
-              fontReg,
+              FontStyle.ui.regular,
               { fontSize: 13, lineHeight: 19, color: theme.textSecondary },
             ]}
           >
@@ -291,7 +286,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
         >
           <Text
             style={[
-              fontBold,
+              FontStyle.ui.bold,
               { fontSize: 13, letterSpacing: 2.4, color: "#fafafa" },
             ]}
           >

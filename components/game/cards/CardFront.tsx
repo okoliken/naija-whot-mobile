@@ -1,45 +1,14 @@
 import { Text, View } from "react-native";
-import { SHAPE_LABELS, type Card } from "@/src/store/gameStore";
+import { type Card } from "@/src/store/gameStore";
 import { cn } from "@/src/lib/cn";
 import { Font } from "../../theme/fonts";
 import { CARD_SIZE } from "./cardTokens";
-
-const SHAPE_GLYPH: Record<string, string> = {
-  circle: "●",
-  triangle: "▲",
-  cross: "✚",
-  star: "★",
-  square: "■",
-  whot: "♛",
-};
-
-const CENTER_GLYPH_CLASS: Record<Card["shape"], string> = {
-  circle: "text-[44px]",
-  triangle: "text-[50px]",
-  cross: "text-[42px]",
-  star: "text-[46px]",
-  square: "text-[54px]",
-  whot: "text-[40px]",
-};
-
-const CORNER_GLYPH_CLASS: Record<Card["shape"], string> = {
-  circle: "text-[12px]",
-  triangle: "text-[12px]",
-  cross: "text-[11px]",
-  star: "text-[12px]",
-  square: "text-[16px]",
-  whot: "text-[11px]",
-};
-
-function renderCardTitle(card: Card): string {
-  if (card.value === 20) return "Whot";
-  if (card.value === 14) return "General Market";
-  if (card.value === 8) return "Suspension";
-  if (card.value === 5) return "Pick Three";
-  if (card.value === 2) return "Pick Two";
-  if (card.value === 1) return "Hold On";
-  return SHAPE_LABELS[card.shape];
-}
+import {
+  CENTER_GLYPH_CLASS,
+  CORNER_GLYPH_CLASS,
+  renderCardTitle,
+  SHAPE_GLYPH,
+} from "./cardGlyphs";
 
 type CardFrontProps = {
   card: Card;

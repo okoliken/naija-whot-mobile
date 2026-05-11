@@ -3,7 +3,7 @@ import { useCallback, useLayoutEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 import { BRAND } from "../../theme/theme";
 import { useAppTheme } from "../../theme/ThemeContext";
-import { Font } from "../../theme/fonts";
+import { FontStyle } from "../../theme/fonts";
 
 export type RoundResult = {
   round: number;
@@ -22,11 +22,6 @@ type Props = {
 export function WinModal({ winner, history, onRestart }: Props) {
   const theme = useAppTheme();
   const sheetRef = useRef<BottomSheetModal>(null);
-
-  const fontDisplay = { fontFamily: Font.display.bold } as const;
-  const fontBold = { fontFamily: Font.ui.bold } as const;
-  const fontSemi = { fontFamily: Font.ui.semi } as const;
-  const fontReg = { fontFamily: Font.ui.regular } as const;
 
   useLayoutEffect(() => {
     const t = setTimeout(() => sheetRef.current?.present(), 50);
@@ -60,7 +55,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
         {/* Result headline */}
         <Text
           style={[
-            fontDisplay,
+            FontStyle.display.bold,
             {
               marginBottom: 24,
               textAlign: "center",
@@ -81,10 +76,10 @@ export function WinModal({ winner, history, onRestart }: Props) {
             style={{ backgroundColor: theme.surfaceAlt, borderWidth: 1, borderColor: theme.border }}
           >
             <View className="items-center gap-1">
-              <Text style={[fontBold, { fontSize: 24, color: theme.textPrimary }]}>
+              <Text style={[FontStyle.ui.bold, { fontSize: 24, color: theme.textPrimary }]}>
                 {history[history.length - 1]?.humanCards ?? 0}
               </Text>
-              <Text style={[fontReg, { fontSize: 11, color: theme.textMuted }]}>
+              <Text style={[FontStyle.ui.regular, { fontSize: 11, color: theme.textMuted }]}>
                 Your cards
               </Text>
             </View>
@@ -93,10 +88,10 @@ export function WinModal({ winner, history, onRestart }: Props) {
               style={{ backgroundColor: theme.border }}
             />
             <View className="items-center gap-1">
-              <Text style={[fontBold, { fontSize: 24, color: theme.textPrimary }]}>
+              <Text style={[FontStyle.ui.bold, { fontSize: 24, color: theme.textPrimary }]}>
                 {history[history.length - 1]?.computerCards ?? 0}
               </Text>
-              <Text style={[fontReg, { fontSize: 11, color: theme.textMuted }]}>
+              <Text style={[FontStyle.ui.regular, { fontSize: 11, color: theme.textMuted }]}>
                 CPU cards
               </Text>
             </View>
@@ -109,13 +104,13 @@ export function WinModal({ winner, history, onRestart }: Props) {
           className="mb-6 items-center rounded-2xl py-4 active:opacity-80"
           style={{ backgroundColor: BRAND }}
         >
-          <Text style={[fontBold, { fontSize: 14, letterSpacing: 2.8, color: "#fafafa" }]}>PLAY AGAIN</Text>
+          <Text style={[FontStyle.ui.bold, { fontSize: 14, letterSpacing: 2.8, color: "#fafafa" }]}>PLAY AGAIN</Text>
         </Pressable>
 
         {/* History */}
         {history.length > 1 && (
           <>
-            <Text style={[fontSemi, { marginBottom: 12, fontSize: 13, color: theme.textSecondary }]}>
+            <Text style={[FontStyle.ui.semi, { marginBottom: 12, fontSize: 13, color: theme.textSecondary }]}>
               Round history
             </Text>
             <View className="gap-2">
@@ -125,16 +120,16 @@ export function WinModal({ winner, history, onRestart }: Props) {
                   className="flex-row items-center justify-between rounded-xl px-4 py-3"
                   style={{ backgroundColor: theme.surfaceAlt, borderWidth: 1, borderColor: theme.border }}
                 >
-                  <Text style={[fontSemi, { fontSize: 12, color: theme.textSecondary }]}>Round {r.round}</Text>
+                  <Text style={[FontStyle.ui.semi, { fontSize: 12, color: theme.textSecondary }]}>Round {r.round}</Text>
                   <Text
                     style={[
-                      fontBold,
+                      FontStyle.ui.bold,
                       { fontSize: 12, color: r.winner === "human" ? "#34d399" : theme.textMuted },
                     ]}
                   >
                     {r.winner === "human" ? "You won" : "CPU won"}
                   </Text>
-                  <Text style={[fontReg, { fontSize: 12, color: theme.textMuted }]}>
+                  <Text style={[FontStyle.ui.regular, { fontSize: 12, color: theme.textMuted }]}>
                     {r.humanCards} – {r.computerCards}
                   </Text>
                 </View>

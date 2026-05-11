@@ -15,8 +15,23 @@ export function OpponentSection({ turn, count }: OpponentSectionProps) {
   return (
     <Section>
       <View className="mb-3 flex-row items-baseline justify-between gap-3">
-        <Text style={{ fontFamily: Font.display.bold, fontSize: 17, color: theme.textPrimary, letterSpacing: 1 }}>CPU</Text>
-        <Text style={{ fontFamily: Font.ui.regular, fontSize: 12, color: theme.textMuted }}>
+        <Text
+          style={{
+            fontFamily: Font.display.bold,
+            fontSize: 17,
+            color: theme.textPrimary,
+            letterSpacing: 1,
+          }}
+        >
+          CPU
+        </Text>
+        <Text
+          style={{
+            fontFamily: Font.ui.regular,
+            fontSize: 12,
+            color: theme.textMuted,
+          }}
+        >
           {turn === "computer" ? "Thinking..." : "Waiting"}
         </Text>
       </View>

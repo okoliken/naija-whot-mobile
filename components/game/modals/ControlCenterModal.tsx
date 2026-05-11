@@ -8,7 +8,7 @@ import { useCallback, useRef, type RefObject } from "react";
 import { Pressable, Text, View } from "react-native";
 import { BRAND } from "../../theme/theme";
 import { useAppTheme, useThemeMode } from "../../theme/ThemeContext";
-import { Font } from "../../theme/fonts";
+import { Font, FontStyle } from "../../theme/fonts";
 import type { RoundResult } from "./WinModal";
 import { DIFFICULTIES, DIFFICULTY_DESC } from "@/src/store/game/constants";
 import type { ThemeMode } from "@/src/lib/themePreference";
@@ -35,11 +35,6 @@ export function ControlCenterModal({
   const { mode, setMode } = useThemeMode();
   const internalRef = useRef<BottomSheetModal>(null);
   const sheetRef = ref ?? internalRef;
-
-  const fontDisplay = { fontFamily: Font.display.bold } as const;
-  const fontBold = { fontFamily: Font.ui.bold } as const;
-  const fontSemi = { fontFamily: Font.ui.semi } as const;
-  const fontReg = { fontFamily: Font.ui.regular } as const;
 
   const renderBackdrop = useCallback(
     (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
@@ -78,7 +73,7 @@ export function ControlCenterModal({
       >
         <Text
           style={[
-            fontDisplay,
+            FontStyle.display.bold,
             {
               marginBottom: 24,
               textAlign: "center",
@@ -103,11 +98,11 @@ export function ControlCenterModal({
             }}
           >
             <View className="items-center gap-1">
-              <Text style={[fontBold, { fontSize: 24, color: "#34d399" }]}>
+              <Text style={[FontStyle.ui.bold, { fontSize: 24, color: "#34d399" }]}>
                 {wins}
               </Text>
               <Text
-                style={[fontReg, { fontSize: 11, color: theme.textMuted }]}
+                style={[FontStyle.ui.regular, { fontSize: 11, color: theme.textMuted }]}
               >
                 Wins
               </Text>
@@ -118,12 +113,12 @@ export function ControlCenterModal({
             />
             <View className="items-center gap-1">
               <Text
-                style={[fontBold, { fontSize: 24, color: theme.textPrimary }]}
+                style={[FontStyle.ui.bold, { fontSize: 24, color: theme.textPrimary }]}
               >
                 {history.length}
               </Text>
               <Text
-                style={[fontReg, { fontSize: 11, color: theme.textMuted }]}
+                style={[FontStyle.ui.regular, { fontSize: 11, color: theme.textMuted }]}
               >
                 Rounds
               </Text>
@@ -134,12 +129,12 @@ export function ControlCenterModal({
             />
             <View className="items-center gap-1">
               <Text
-                style={[fontBold, { fontSize: 24, color: theme.textSecondary }]}
+                style={[FontStyle.ui.bold, { fontSize: 24, color: theme.textSecondary }]}
               >
                 {losses}
               </Text>
               <Text
-                style={[fontReg, { fontSize: 11, color: theme.textMuted }]}
+                style={[FontStyle.ui.regular, { fontSize: 11, color: theme.textMuted }]}
               >
                 Losses
               </Text>
@@ -150,7 +145,7 @@ export function ControlCenterModal({
         {/* Appearance */}
         <Text
           style={[
-            fontSemi,
+            FontStyle.ui.semi,
             {
               marginBottom: 12,
               fontSize: 13,
@@ -191,7 +186,7 @@ export function ControlCenterModal({
                 </Text>
                 <Text
                   style={[
-                    fontSemi,
+                    FontStyle.ui.semi,
                     {
                       fontSize: 12,
                       letterSpacing: 1.2,
@@ -209,7 +204,7 @@ export function ControlCenterModal({
         {/* Difficulty */}
         <Text
           style={[
-            fontSemi,
+            FontStyle.ui.semi,
             {
               marginBottom: 12,
               fontSize: 13,
@@ -235,7 +230,7 @@ export function ControlCenterModal({
               >
                 <Text
                   style={[
-                    fontBold,
+                    FontStyle.ui.bold,
                     {
                       fontSize: 12,
                       letterSpacing: 2.4,
@@ -247,7 +242,7 @@ export function ControlCenterModal({
                 </Text>
                 <Text
                   style={[
-                    fontReg,
+                    FontStyle.ui.regular,
                     {
                       marginTop: 4,
                       fontSize: 9,
@@ -265,7 +260,7 @@ export function ControlCenterModal({
         {/* History */}
         <Text
           style={[
-            fontSemi,
+            FontStyle.ui.semi,
             {
               marginBottom: 12,
               fontSize: 13,
@@ -277,7 +272,7 @@ export function ControlCenterModal({
         </Text>
         {history.length === 0 ? (
           <View className="items-center py-8">
-            <Text style={[fontReg, { fontSize: 14, color: theme.textSubtle }]}>
+            <Text style={[FontStyle.ui.regular, { fontSize: 14, color: theme.textSubtle }]}>
               No games played yet.
             </Text>
           </View>
@@ -295,7 +290,7 @@ export function ControlCenterModal({
               >
                 <Text
                   style={[
-                    fontSemi,
+                    FontStyle.ui.semi,
                     { fontSize: 12, color: theme.textSecondary },
                   ]}
                 >
@@ -303,7 +298,7 @@ export function ControlCenterModal({
                 </Text>
                 <Text
                   style={[
-                    fontBold,
+                    FontStyle.ui.bold,
                     {
                       fontSize: 12,
                       color: r.winner === "human" ? "#34d399" : theme.textMuted,
@@ -313,7 +308,7 @@ export function ControlCenterModal({
                   {r.winner === "human" ? "You won" : "CPU won"}
                 </Text>
                 <Text
-                  style={[fontReg, { fontSize: 12, color: theme.textMuted }]}
+                  style={[FontStyle.ui.regular, { fontSize: 12, color: theme.textMuted }]}
                 >
                   {r.humanCards} – {r.computerCards}
                 </Text>

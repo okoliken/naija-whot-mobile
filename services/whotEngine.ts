@@ -32,7 +32,7 @@ export function isMarketDepletedError(err: unknown): boolean {
   return err instanceof Error && err.name === 'OutOfRangeError'
 }
 
-export function isOutOfTurnError(err: unknown): boolean {
+function isOutOfTurnError(err: unknown): boolean {
   return err instanceof Error && err.name === 'OutOfTurnError'
 }
 
@@ -44,7 +44,7 @@ export class WhotEngine {
     this.resetPendingPicks()
   }
 
-  resetPendingPicks() {
+  private resetPendingPicks() {
     this.engine.players.forEach((p) => {
       p.toPick = 0
     })
@@ -58,18 +58,8 @@ export class WhotEngine {
     return this.engine.market.cards.length
   }
 
-  getPlayer(index: number): EnginePlayer {
-    return this.engine.players[index]
-  }
-
   getHand(index: number): CardModel[] {
     return this.engine.players[index].hand().map((card, cardIndex) => this.toCardModel(card, cardIndex))
-  }
-
-  canPlayCard(card: CardModel, topCard: CardModel, requestedShape: CardShape | null): boolean {
-    if (card.value === 20) return true
-    if (requestedShape) return card.shape === requestedShape
-    return card.shape === topCard.shape || card.value === topCard.value
   }
 
   play(index: number, handIndex: number, iNeed?: CardShape): CardModel {
@@ -102,26 +92,11 @@ export class WhotEngine {
     }
   }
 
-  /**
-   * Returns the maximum number of cards a player could draw right now.
-   * The whot engine refills the market from the pile (minus the current top card)
-   * once the market runs dry, so we sum both pools.
-   */
-  drawableCount(): number {
-    const market = this.engine.market.cards.length
-    const pile = Math.max(0, this.engine.pile.cards.length - 1)
-    return market + pile
-  }
-
-  isMarketDepleted(): boolean {
-    return this.drawableCount() === 0
-  }
-
   switchTurn(skip = 0) {
     this.engine.turn.switch(skip)
   }
 
-  toCardModel(card: EngineCard, handIndex?: number): CardModel {
+  private toCardModel(card: EngineCard, handIndex?: number): CardModel {
     return {
       id: `${card.shape}-${card.value}-${handIndex ?? 'p'}-${Math.random().toString(16).slice(2, 8)}`,
       value: card.value,

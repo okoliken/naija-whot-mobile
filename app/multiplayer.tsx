@@ -23,7 +23,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { Font } from "../components/theme/fonts";
-import { BRAND } from "../components/theme/theme";
+import { BRAND, ON_BRAND, ON_BRAND_DIM } from "../components/theme/theme";
 import { useAppTheme } from "../components/theme/ThemeContext";
 import { useRoom } from "@/src/lib/useRoom";
 import type { RoomState } from "@/src/lib/roomTypes";
@@ -196,7 +196,7 @@ function PickStep({
               fontFamily: Font.ui.bold,
               fontSize: 14,
               letterSpacing: 2.8,
-              color: "#fafafa",
+              color: ON_BRAND,
             }}
           >
             CREATE ROOM
@@ -206,7 +206,7 @@ function PickStep({
               fontFamily: Font.ui.regular,
               marginTop: 6,
               fontSize: 12,
-              color: "rgba(250,250,250,0.7)",
+              color: ON_BRAND_DIM,
             }}
           >
             Get a code · share it
@@ -251,9 +251,25 @@ function PickStep({
   );
 }
 
+function useGameLaunchOnReady(room: RoomState, code: string | null) {
+  useEffect(() => {
+    if (room.kind !== "ready" || !code) return;
+    // Brief delay so the "Connected" line has time to register on both
+    // devices before we yank the screen out from under the lobby UI.
+    const t = setTimeout(() => {
+      router.replace({
+        pathname: "/multiplayer-game",
+        params: { code, seat: room.seat },
+      });
+    }, 600);
+    return () => clearTimeout(t);
+  }, [room, code]);
+}
+
 function CreateStep({ code }: { code: string }) {
   const theme = useAppTheme();
   const room = useRoom({ mode: "create", code: code || null });
+  useGameLaunchOnReady(room, code || null);
 
   return (
     <View style={{ flex: 1, justifyContent: "space-between" }}>
@@ -320,6 +336,7 @@ function JoinStep({
   const theme = useAppTheme();
   const inputRef = useRef<TextInput>(null);
   const room = useRoom({ mode: "join", code: submittedCode });
+  useGameLaunchOnReady(room, submittedCode);
 
   useEffect(() => {
     if (submittedCode) return;
@@ -506,7 +523,7 @@ function JoinStep({
             fontFamily: Font.ui.bold,
             fontSize: 14,
             letterSpacing: 2.8,
-            color: ready ? "#fafafa" : theme.textMuted,
+            color: ready ? ON_BRAND : theme.textMuted,
           }}
         >
           JOIN GAME
@@ -579,9 +596,9 @@ function RoomStatusLine({
 
   const color =
     tone === "success"
-      ? "#34d399"
+      ? theme.success
       : tone === "error"
-        ? "#f87171"
+        ? theme.danger
         : theme.textMuted;
 
   return (

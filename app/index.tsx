@@ -12,7 +12,7 @@ import {
 import { CardFront } from "../components/game/cards/CardFront";
 import { HowToPlayModal } from "../components/HowToPlayModal";
 import { Font } from "../components/theme/fonts";
-import { BRAND } from "../components/theme/theme";
+import { BRAND, ON_BRAND, ON_BRAND_DIM } from "../components/theme/theme";
 import { useAppTheme } from "../components/theme/ThemeContext";
 
 export default function HomeScreen() {
@@ -86,7 +86,7 @@ export default function HomeScreen() {
                   fontFamily: Font.display.bold,
                   fontSize: 22,
                   letterSpacing: 1.6,
-                  color: "#fafafa",
+                  color: ON_BRAND,
                 }}
               >
                 WHOT
@@ -147,7 +147,7 @@ export default function HomeScreen() {
                 fontFamily: Font.ui.bold,
                 fontSize: 14,
                 letterSpacing: 2.8,
-                color: "#fafafa",
+                color: ON_BRAND,
               }}
             >
               PLAY VS CPU
@@ -157,7 +157,7 @@ export default function HomeScreen() {
                 fontFamily: Font.ui.regular,
                 marginTop: 6,
                 fontSize: 12,
-                color: "rgba(250,250,250,0.7)",
+                color: ON_BRAND_DIM,
               }}
             >
               Solo · against the house

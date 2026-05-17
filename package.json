@@ -2,6 +2,7 @@
   "name": "whot",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.4.1",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -54,6 +55,11 @@
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2",
     "vitest": "^4.1.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@firebase/util"
+    ]
   },
   "private": true
 }

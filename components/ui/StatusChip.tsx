@@ -13,30 +13,20 @@ import Animated, {
 import { View } from "react-native";
 
 import { Font } from "../theme/fonts";
+import { useAppTheme } from "../theme/ThemeContext";
 
 type StatusChipProps = {
   label: string;
   accent?: "default" | "warning";
 };
 
-const STYLES = {
-  default: {
-    bg: "#1a3a6b",
-    border: "#5b8dd9",
-    text: "#ffffff",
-    glow: "#4a90e2",
-  },
-  warning: {
-    bg: "#7c2d12",
-    border: "#f97316",
-    text: "#fff7ed",
-    glow: "#f97316",
-  },
-};
-
 export function StatusChip({ label, accent = "default" }: StatusChipProps) {
+  const theme = useAppTheme();
   const isWarning = accent === "warning";
-  const colors = STYLES[accent];
+  const palette = isWarning ? theme.chipPenalty : theme.chipShape;
+  // The chip's outer glow rides the same hue as its border so it stays
+  // coherent across themes without a separate glow token.
+  const glowColor = palette.border;
 
   // Primary shimmer sweep
   const shimmer1 = useSharedValue(-90);
@@ -127,10 +117,10 @@ export function StatusChip({ label, accent = "default" }: StatusChipProps) {
           borderWidth: 1,
           paddingHorizontal: 12,
           paddingVertical: 5,
-          backgroundColor: colors.bg,
-          borderColor: colors.border,
+          backgroundColor: palette.bg,
+          borderColor: palette.border,
           overflow: "hidden",
-          shadowColor: colors.glow,
+          shadowColor: glowColor,
           shadowOffset: { width: 0, height: 0 },
           elevation: 14,
         },
@@ -184,7 +174,7 @@ export function StatusChip({ label, accent = "default" }: StatusChipProps) {
           {
             fontSize: 11,
             fontFamily: Font.ui.semi,
-            color: colors.text,
+            color: palette.text,
             letterSpacing: 0.3,
           },
         ]}

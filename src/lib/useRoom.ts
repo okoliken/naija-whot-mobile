@@ -3,25 +3,35 @@ import {
   getDoc,
   onSnapshot,
   setDoc,
+  Timestamp,
   updateDoc,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
-import { getClientId } from "./clientId";
 import { db } from "./firebase";
 import type { RoomDoc, RoomState, Seat } from "./roomTypes";
+import { useAuthUid } from "./useAuthUid";
 
 type Args = {
   mode: "create" | "join" | null;
   code: string | null;
 };
 
+const ROOM_TTL_MS = 24 * 60 * 60 * 1000;
+
 export function useRoom({ mode, code }: Args): RoomState {
+  const myId = useAuthUid();
   const [state, setState] = useState<RoomState>({ kind: "idle" });
 
   useEffect(() => {
     if (!mode || !code) {
       setState({ kind: "idle" });
+      return;
+    }
+    if (!myId) {
+      // Anonymous sign-in hasn't landed yet. Stay in `connecting`; this
+      // effect re-runs when `myId` resolves.
+      setState({ kind: "connecting" });
       return;
     }
 
@@ -30,9 +40,6 @@ export function useRoom({ mode, code }: Args): RoomState {
     setState({ kind: "connecting" });
 
     (async () => {
-      const myId = await getClientId();
-      if (cancelled) return;
-
       const ref = doc(db, "rooms", code);
 
       try {
@@ -40,9 +47,12 @@ export function useRoom({ mode, code }: Args): RoomState {
           const snap = await getDoc(ref);
           if (cancelled) return;
           if (!snap.exists()) {
+            const now = Date.now();
             await setDoc(ref, {
               code,
-              createdAt: Date.now(),
+              createdAt: now,
+              // Firestore TTL only triggers on Timestamp fields, not raw numbers.
+              expiresAt: Timestamp.fromMillis(now + ROOM_TTL_MS),
               hostId: myId,
               guestId: null,
             } satisfies RoomDoc);
@@ -72,12 +82,23 @@ export function useRoom({ mode, code }: Args): RoomState {
             await updateDoc(ref, { guestId: myId });
           }
         }
-      } catch {
+      } catch (err) {
+        // Surface the Firebase error code so rule denials and offline
+        // states are distinguishable instead of all collapsing to a
+        // generic "couldn't reach" message.
+        const code =
+          err && typeof err === "object" && "code" in err
+            ? String((err as { code: unknown }).code)
+            : "unknown";
+        console.warn("[useRoom] write failed", code, err);
         if (!cancelled) {
-          setState({
-            kind: "error",
-            hint: "Couldn't reach Firestore. Check your connection.",
-          });
+          const hint =
+            code === "permission-denied"
+              ? "Firestore rules rejected the write. Deploy firestore.rules."
+              : code === "unavailable"
+                ? "Firestore is unreachable. Check your connection."
+                : `Couldn't reach Firestore (${code}).`;
+          setState({ kind: "error", hint });
         }
         return;
       }
@@ -97,7 +118,7 @@ export function useRoom({ mode, code }: Args): RoomState {
           const both = data.hostId && data.guestId;
           setState(
             both
-              ? { kind: "ready", seat }
+              ? { kind: "ready", seat, code, hostId: data.hostId!, guestId: data.guestId! }
               : { kind: "waiting", seat },
           );
         },
@@ -113,7 +134,7 @@ export function useRoom({ mode, code }: Args): RoomState {
       cancelled = true;
       unsubscribe?.();
     };
-  }, [mode, code]);
+  }, [mode, code, myId]);
 
   return state;
 }

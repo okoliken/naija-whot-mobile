@@ -1,6 +1,31 @@
 /** Brand / card-back red — same in both modes */
 export const BRAND = "#6e1018";
 
+/* ---------- Mode-invariant tokens ----------
+ * These sit either on top of BRAND or on the card paper, so they don't
+ * shift between light/dark.
+ */
+/** Primary text/glyph on a BRAND surface (CTA buttons, card back). */
+export const ON_BRAND = "#fafafa";
+/** Secondary text on a BRAND surface (CTA subtitles). */
+export const ON_BRAND_DIM = "rgba(250,250,250,0.7)";
+/** Card face background ("paper"). */
+export const CARD_PAPER = "#f7f2e9";
+/** Card face background, pressed state. */
+export const CARD_PAPER_PRESSED = "#e8e2d8";
+/** Ink on the card paper — values, glyphs, titles. */
+export const CARD_INK = BRAND;
+/** Hairline edge on a paper card. */
+export const CARD_EDGE_PAPER = "#00000022";
+/** Hairline edge on a red card back. */
+export const CARD_EDGE_RED = "#ffffff24";
+
+/** Tonal ink for decorative type on the card face. Single helper so the
+ *  brand RGB stays defined once; callers pick the alpha they need. */
+export function inkAlpha(alpha: number): string {
+  return `rgba(110, 16, 24, ${alpha})`;
+}
+
 export type ChipColors = { bg: string; border: string; text: string };
 
 /** iOS shadow + Android elevation for lifted panels */
@@ -32,6 +57,10 @@ export type AppTheme = {
   chipPenalty: ChipColors;
   chipShape: ChipColors;
   chipCpu: ChipColors;
+  /** Positive accent (round won, "connected" dot). Mode-aware. */
+  success: string;
+  /** Negative accent (errors, disconnect). Mode-aware. */
+  danger: string;
   messageShadow: string;
   messageShadowOpacity: number;
   panelLift: PanelLift;
@@ -56,6 +85,8 @@ export const darkTheme: AppTheme = {
   chipPenalty: { bg: "#2d080c", border: "#7f1d1d", text: "#fca5a5" },
   chipShape: { bg: "#0c1828", border: "#1e3a5f", text: "#93c5fd" },
   chipCpu: { bg: "#131319", border: "#22222a", text: "#9b9ba3" },
+  success: "#34d399",
+  danger: "#f87171",
   messageShadow: "#000",
   messageShadowOpacity: 0.5,
   panelLift: {
@@ -92,6 +123,8 @@ export const lightTheme: AppTheme = {
   chipPenalty: { bg: "#fef2f2", border: "#fca5a5", text: "#b91c1c" },
   chipShape: { bg: "#eff6ff", border: "#93c5fd", text: "#1d4ed8" },
   chipCpu: { bg: "#ebe6dc", border: "#d4cec3", text: "#71717a" },
+  success: "#047857",
+  danger: "#b91c1c",
   messageShadow: "#18181b",
   messageShadowOpacity: 0.12,
   panelLift: {

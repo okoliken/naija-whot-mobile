@@ -1,7 +1,9 @@
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import { useCallback, useLayoutEffect, useRef } from "react";
-import { Pressable, Text, View } from "react-native";
-import { BRAND } from "../../theme/theme";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { hapticsImpactLight } from "@/src/lib/haptics";
+import { WinConfetti } from "../effects/WinConfetti";
+import { BRAND, ON_BRAND } from "../../theme/theme";
 import { useAppTheme } from "../../theme/ThemeContext";
 import { FontStyle } from "../../theme/fonts";
 
@@ -22,12 +24,16 @@ type Props = {
 export function WinModal({ winner, history, onRestart }: Props) {
   const theme = useAppTheme();
   const sheetRef = useRef<BottomSheetModal>(null);
+  const [sheetBody, setSheetBody] = useState({ width: 0, height: 0 });
 
   useLayoutEffect(() => {
-    const t = setTimeout(() => sheetRef.current?.present(), 50);
+    const sheet = sheetRef.current;
+    const t = setTimeout(() => {
+      sheetRef.current?.present();
+    }, 50);
     return () => {
       clearTimeout(t);
-      sheetRef.current?.dismiss();
+      sheet?.dismiss();
     };
   }, []);
 
@@ -39,6 +45,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
   );
 
   const isWin = winner === "human";
+  const confettiBlastKey = history.at(-1)?.round ?? history.length;
 
   return (
     <BottomSheetModal
@@ -49,9 +56,19 @@ export function WinModal({ winner, history, onRestart }: Props) {
       backgroundStyle={{ backgroundColor: theme.surface }}
       handleIndicatorStyle={{ backgroundColor: theme.border, width: 36, height: 3 }}
     >
-      <BottomSheetScrollView
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 48, paddingTop: 8 }}
+      <View
+        style={styles.sheetBody}
+        onLayout={(e) => {
+          const { width, height } = e.nativeEvent.layout;
+          setSheetBody((prev) =>
+            prev.width === width && prev.height === height ? prev : { width, height },
+          );
+        }}
       >
+        <BottomSheetScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 48, paddingTop: 8 }}
+        >
         {/* Result headline */}
         <Text
           style={[
@@ -62,7 +79,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
               fontSize: 34,
               lineHeight: 40,
               letterSpacing: 0.6,
-              color: isWin ? "#34d399" : theme.textSecondary,
+              color: isWin ? theme.success : theme.textSecondary,
             },
           ]}
         >
@@ -100,11 +117,14 @@ export function WinModal({ winner, history, onRestart }: Props) {
 
         {/* Play again */}
         <Pressable
-          onPress={onRestart}
+          onPress={() => {
+            hapticsImpactLight();
+            onRestart();
+          }}
           className="mb-6 items-center rounded-2xl py-4 active:opacity-80"
           style={{ backgroundColor: BRAND }}
         >
-          <Text style={[FontStyle.ui.bold, { fontSize: 14, letterSpacing: 2.8, color: "#fafafa" }]}>PLAY AGAIN</Text>
+          <Text style={[FontStyle.ui.bold, { fontSize: 14, letterSpacing: 2.8, color: ON_BRAND }]}>PLAY AGAIN</Text>
         </Pressable>
 
         {/* History */}
@@ -124,7 +144,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
                   <Text
                     style={[
                       FontStyle.ui.bold,
-                      { fontSize: 12, color: r.winner === "human" ? "#34d399" : theme.textMuted },
+                      { fontSize: 12, color: r.winner === "human" ? theme.success : theme.textMuted },
                     ]}
                   >
                     {r.winner === "human" ? "You won" : "CPU won"}
@@ -137,7 +157,23 @@ export function WinModal({ winner, history, onRestart }: Props) {
             </View>
           </>
         )}
-      </BottomSheetScrollView>
+        </BottomSheetScrollView>
+
+        {isWin && sheetBody.width >= 24 && sheetBody.height >= 24 ? (
+          <WinConfetti
+            key={confettiBlastKey}
+            width={sheetBody.width}
+            height={sheetBody.height}
+          />
+        ) : null}
+      </View>
     </BottomSheetModal>
   );
 }
+
+const styles = StyleSheet.create({
+  sheetBody: {
+    flex: 1,
+    position: "relative",
+  },
+});

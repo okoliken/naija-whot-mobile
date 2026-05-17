@@ -4,6 +4,7 @@ import { useCallback, useLayoutEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useAppTheme } from "../../theme/ThemeContext";
 import { Font } from "../../theme/fonts";
+import { CARD_INK, CARD_PAPER, CARD_PAPER_PRESSED, inkAlpha } from "../../theme/theme";
 
 type Shape = Exclude<GameState["requestedShape"], null>;
 
@@ -82,10 +83,10 @@ export function ShapePickerModal({ shapes, onChoose }: Props) {
               style={({ pressed }) => ({
                 width: 58,
                 height: 72,
-                backgroundColor: pressed ? "#e8e2d8" : "#f7f2e9",
+                backgroundColor: pressed ? CARD_PAPER_PRESSED : CARD_PAPER,
                 borderRadius: 8,
                 borderWidth: 1,
-                borderColor: "#6e101833",
+                borderColor: inkAlpha(0.2),
                 alignItems: "center",
                 justifyContent: "center",
                 transform: [{ scale: pressed ? 0.92 : 1 }],
@@ -101,7 +102,7 @@ export function ShapePickerModal({ shapes, onChoose }: Props) {
                   fontFamily: Font.ui.bold,
                   fontSize: GLYPH_SIZE[shape],
                   lineHeight: GLYPH_SIZE[shape] + 6,
-                  color: "#6e1018",
+                  color: CARD_INK,
                 }}
               >
                 {SHAPE_GLYPH[shape]}
@@ -109,7 +110,7 @@ export function ShapePickerModal({ shapes, onChoose }: Props) {
               <Text
                 style={[
                   fontSemi,
-                  { fontSize: 7, color: "#6e1018aa", letterSpacing: 0.6, marginTop: 4 },
+                  { fontSize: 7, color: inkAlpha(0.67), letterSpacing: 0.6, marginTop: 4 },
                 ]}
               >
                 {SHAPE_LABELS[shape].toUpperCase()}

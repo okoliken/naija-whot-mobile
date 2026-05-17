@@ -6,7 +6,7 @@ import {
 import { useCallback, useRef, type RefObject } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { BRAND } from "./theme/theme";
+import { BRAND, ON_BRAND } from "./theme/theme";
 import { FontStyle } from "./theme/fonts";
 import { useAppTheme } from "./theme/ThemeContext";
 
@@ -211,7 +211,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
                 <Text
                   style={[
                     FontStyle.ui.bold,
-                    { fontSize: 18, color: "#fafafa", letterSpacing: 0.4 },
+                    { fontSize: 18, color: ON_BRAND, letterSpacing: 0.4 },
                   ]}
                 >
                   {card.value}
@@ -287,7 +287,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
           <Text
             style={[
               FontStyle.ui.bold,
-              { fontSize: 13, letterSpacing: 2.4, color: "#fafafa" },
+              { fontSize: 13, letterSpacing: 2.4, color: ON_BRAND },
             ]}
           >
             GOT IT

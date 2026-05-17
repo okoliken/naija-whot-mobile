@@ -21,6 +21,8 @@ type HeaderBarProps = {
   onRestart: () => void;
   onSettings: () => void;
   onBack: () => void;
+  /** Defaults to "CPU"; multiplayer passes "Opponent". */
+  opponentLabel?: string;
 };
 
 export function HeaderBar({
@@ -31,6 +33,7 @@ export function HeaderBar({
   onRestart,
   onSettings,
   onBack,
+  opponentLabel,
 }: HeaderBarProps) {
   const theme = useAppTheme();
   const labelFont = { fontFamily: Font.ui.semi } as const;
@@ -42,6 +45,7 @@ export function HeaderBar({
     turn,
     pendingPick,
     requestedShape,
+    opponentLabel,
   });
   const chipStyles: Record<
     ChipVariant,

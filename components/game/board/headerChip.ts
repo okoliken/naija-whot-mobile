@@ -13,6 +13,8 @@ type ChipInputs = {
   turn: Player;
   pendingPick: number;
   requestedShape: string | null;
+  /** Display name for the opposing player. Default "CPU". */
+  opponentLabel?: string;
 };
 
 export function getChipState({
@@ -20,15 +22,16 @@ export function getChipState({
   turn,
   pendingPick,
   requestedShape,
+  opponentLabel = "CPU",
 }: ChipInputs): ChipState {
   if (winner === "human") {
     return { variant: "your-turn", label: "You won this round", pulse: false };
   }
   if (winner === "computer") {
-    return { variant: "penalty", label: "CPU won this round", pulse: false };
+    return { variant: "penalty", label: `${opponentLabel} won this round`, pulse: false };
   }
   if (turn === "computer") {
-    return { variant: "cpu", label: "CPU thinking...", pulse: false };
+    return { variant: "cpu", label: `${opponentLabel} thinking...`, pulse: false };
   }
   if (pendingPick > 0) {
     const noun = pendingPick === 1 ? "card" : "cards";

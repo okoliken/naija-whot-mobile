@@ -8,9 +8,11 @@ import { type Player } from "@/src/store/gameStore";
 type OpponentSectionProps = {
   turn: Player;
   count: number;
+  /** Display name for the opponent slot. Defaults to "CPU" for single-player. */
+  label?: string;
 };
 
-export function OpponentSection({ turn, count }: OpponentSectionProps) {
+export function OpponentSection({ turn, count, label = "CPU" }: OpponentSectionProps) {
   const theme = useAppTheme();
   return (
     <Section>
@@ -23,7 +25,7 @@ export function OpponentSection({ turn, count }: OpponentSectionProps) {
             letterSpacing: 1,
           }}
         >
-          CPU
+          {label}
         </Text>
         <Text
           style={{

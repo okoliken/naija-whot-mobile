@@ -6,7 +6,7 @@ import {
 } from "@gorhom/bottom-sheet";
 import { useCallback, useRef, type RefObject } from "react";
 import { Pressable, Text, View } from "react-native";
-import { BRAND } from "../../theme/theme";
+import { BRAND, ON_BRAND, ON_BRAND_DIM } from "../../theme/theme";
 import { useAppTheme, useThemeMode } from "../../theme/ThemeContext";
 import { Font, FontStyle } from "../../theme/fonts";
 import type { RoundResult } from "./WinModal";
@@ -98,7 +98,7 @@ export function ControlCenterModal({
             }}
           >
             <View className="items-center gap-1">
-              <Text style={[FontStyle.ui.bold, { fontSize: 24, color: "#34d399" }]}>
+              <Text style={[FontStyle.ui.bold, { fontSize: 24, color: theme.success }]}>
                 {wins}
               </Text>
               <Text
@@ -234,7 +234,7 @@ export function ControlCenterModal({
                     {
                       fontSize: 12,
                       letterSpacing: 2.4,
-                      color: active ? "#fafafa" : theme.textSecondary,
+                      color: active ? ON_BRAND : theme.textSecondary,
                     },
                   ]}
                 >
@@ -246,7 +246,7 @@ export function ControlCenterModal({
                     {
                       marginTop: 4,
                       fontSize: 9,
-                      color: active ? "#d4d4d8" : theme.textSubtle,
+                      color: active ? ON_BRAND_DIM : theme.textSubtle,
                     },
                   ]}
                 >
@@ -301,7 +301,7 @@ export function ControlCenterModal({
                     FontStyle.ui.bold,
                     {
                       fontSize: 12,
-                      color: r.winner === "human" ? "#34d399" : theme.textMuted,
+                      color: r.winner === "human" ? theme.success : theme.textMuted,
                     },
                   ]}
                 >

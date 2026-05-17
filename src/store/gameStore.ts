@@ -1,3 +1,11 @@
+import {
+  hapticsImpactLight,
+  hapticsImpactMedium,
+  hapticsInvalidMove,
+  hapticsRoundLost,
+  hapticsRoundWon,
+  hapticsTurnHandoff,
+} from "@/src/lib/haptics";
 import { pickComputerMove } from "@/services/aiPlayer";
 import { isMarketDepletedError } from "@/services/whotEngine";
 import { create } from "zustand";
@@ -47,6 +55,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (!result.ok) {
         const synced = syncHands();
         const exhaustion = resolveByExhaustion({ ...state, ...synced });
+        if (exhaustion.winner === "human") hapticsRoundWon();
+        else if (exhaustion.winner === "computer") hapticsRoundLost();
         set({
           ...state,
           ...synced,
@@ -66,6 +76,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     gameRuntime.pendingPenalty = null;
     gameRuntime.engine.switchTurn();
     const synced = syncHands();
+    hapticsImpactLight();
     set({
       ...state,
       ...synced,
@@ -104,6 +115,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       state.pendingPick > 0 &&
       selectedCard.value !== 2
     ) {
+      hapticsInvalidMove();
       set({ ...state, message: "You must defend with Pick Two or draw." });
       return;
     }
@@ -112,6 +124,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       state.pendingPick > 0 &&
       selectedCard.value !== 5
     ) {
+      hapticsInvalidMove();
       set({ ...state, message: "You must defend with Pick Three or draw." });
       return;
     }
@@ -120,6 +133,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       state.pendingPick > 0 &&
       selectedCard.value !== 14
     ) {
+      hapticsInvalidMove();
       set({
         ...state,
         message: "You must defend with General Market or draw.",
@@ -129,12 +143,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (
       !canPlayByEngineRules(selectedCard, state.topCard, state.requestedShape)
     ) {
+      hapticsInvalidMove();
       set({ ...state, message: "You cannot play that card." });
       return;
     }
 
     if (selectedCard.value === 20) {
       gameRuntime.pendingWhotIndex = index;
+      hapticsImpactMedium();
       set({
         ...state,
         awaitingShapeChoice: true,
@@ -150,6 +166,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (isMarketDepletedError(err)) {
         const synced = syncHands();
         const exhaustion = resolveByExhaustion({ ...state, ...synced });
+        if (exhaustion.winner === "human") hapticsRoundWon();
+        else if (exhaustion.winner === "computer") hapticsRoundLost();
         set({ ...state, ...synced, ...exhaustion });
         return;
       }
@@ -197,6 +215,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!winner && turn !== "human") {
       gameRuntime.engine.switchTurn();
     }
+    if (winner === "human") hapticsRoundWon();
+    else if (winner === "computer") hapticsRoundLost();
+    else hapticsImpactMedium();
     set({
       ...state,
       ...synced,
@@ -239,6 +260,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (isMarketDepletedError(err)) {
         const synced = syncHands();
         const exhaustion = resolveByExhaustion({ ...state, ...synced });
+        if (exhaustion.winner === "human") hapticsRoundWon();
+        else if (exhaustion.winner === "computer") hapticsRoundLost();
         set({ ...state, ...synced, ...exhaustion });
         return;
       }
@@ -249,6 +272,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     gameRuntime.engine.switchTurn();
     const synced = syncHands();
     const winner = checkWinner(synced);
+    if (winner === "human") hapticsRoundWon();
+    else if (winner === "computer") hapticsRoundLost();
+    else hapticsImpactMedium();
     set({
       ...state,
       ...synced,
@@ -284,6 +310,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (gameRuntime.pendingSkipCount > 0) {
       gameRuntime.pendingSkipCount -= 1;
       gameRuntime.engine.switchTurn();
+      hapticsTurnHandoff();
       set({
         ...state,
         skipNextPlayer: gameRuntime.pendingSkipCount > 0 ? "computer" : null,
@@ -327,6 +354,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         if (!result.ok) {
           const synced = syncHands();
           const exhaustion = resolveByExhaustion({ ...state, ...synced });
+          if (exhaustion.winner === "human") hapticsRoundWon();
+          else if (exhaustion.winner === "computer") hapticsRoundLost();
           set({ ...state, ...synced, ...exhaustion });
           return;
         }
@@ -335,6 +364,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       gameRuntime.pendingPenalty = null;
       gameRuntime.engine.switchTurn();
       const synced = syncHands();
+      hapticsTurnHandoff();
       set({
         ...state,
         ...synced,
@@ -364,6 +394,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (isMarketDepletedError(err)) {
         const synced = syncHands();
         const exhaustion = resolveByExhaustion({ ...state, ...synced });
+        if (exhaustion.winner === "human") hapticsRoundWon();
+        else if (exhaustion.winner === "computer") hapticsRoundLost();
         set({ ...state, ...synced, ...exhaustion });
         return;
       }
@@ -409,6 +441,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!winner && turn !== "computer") {
       gameRuntime.engine.switchTurn();
     }
+    if (winner === "human") hapticsRoundWon();
+    else if (winner === "computer") hapticsRoundLost();
+    else if (turn === "human") hapticsTurnHandoff();
     set({
       ...state,
       ...synced,

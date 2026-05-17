@@ -2,6 +2,12 @@ import { Text, View } from "react-native";
 import { type Card } from "@/src/store/gameStore";
 import { cn } from "@/src/lib/cn";
 import { Font } from "../../theme/fonts";
+import {
+  CARD_EDGE_PAPER,
+  CARD_INK,
+  CARD_PAPER,
+  inkAlpha,
+} from "../../theme/theme";
 import { CARD_SIZE } from "./cardTokens";
 import {
   CENTER_GLYPH_CLASS,
@@ -24,34 +30,37 @@ export function CardFront({ card, rotated }: CardFrontProps) {
   const fontBold = { fontFamily: Font.card.bold } as const;
   const fontDisplay = { fontFamily: Font.card.displayItalic } as const;
 
+  const inkStyle = { color: CARD_INK } as const;
+
   return (
     <View
-      className={cn(
-        `${CARD_SIZE} overflow-hidden rounded-lg border border-[#00000022] bg-[#f7f2e9] px-2.5 py-2`,
-        card.value === 14 && "border-[#6e1018]",
-        rotated,
-      )}
+      className={cn(`${CARD_SIZE} overflow-hidden rounded-lg px-2.5 py-2`, rotated)}
+      style={{
+        backgroundColor: CARD_PAPER,
+        borderWidth: 1,
+        borderColor: card.value === 14 ? CARD_INK : CARD_EDGE_PAPER,
+      }}
     >
       <View className="flex-1">
         <View className="absolute left-1 top-1">
-          <Text style={fontBold} className={cn("leading-none text-[#6e1018]", cornerValueClass)}>
+          <Text style={[fontBold, inkStyle]} className={cn("leading-none", cornerValueClass)}>
             {card.value}
           </Text>
           <Text
-            style={fontBold}
-            className={cn("leading-none text-[#6e1018]", CORNER_GLYPH_CLASS[card.shape])}
+            style={[fontBold, inkStyle]}
+            className={cn("leading-none", CORNER_GLYPH_CLASS[card.shape])}
           >
             {glyph}
           </Text>
         </View>
 
         <View className="absolute bottom-1 right-1 items-end" style={{ transform: [{ rotate: "180deg" }] }}>
-          <Text style={fontBold} className={cn("leading-none text-[#6e1018]", cornerValueClass)}>
+          <Text style={[fontBold, inkStyle]} className={cn("leading-none", cornerValueClass)}>
             {card.value}
           </Text>
           <Text
-            style={fontBold}
-            className={cn("leading-none text-[#6e1018]", CORNER_GLYPH_CLASS[card.shape])}
+            style={[fontBold, inkStyle]}
+            className={cn("leading-none", CORNER_GLYPH_CLASS[card.shape])}
           >
             {glyph}
           </Text>
@@ -62,25 +71,25 @@ export function CardFront({ card, rotated }: CardFrontProps) {
             <View className="items-center gap-0.5">
               <View className="flex-row gap-1">
                 {["●", "▲", "■", "✚", "★"].map((g) => (
-                  <Text key={g} style={fontBold} className="text-[8px] text-[#6e1018]/35">
+                  <Text key={g} style={[fontBold, { color: inkAlpha(0.35) }]} className="text-[8px]">
                     {g}
                   </Text>
                 ))}
               </View>
-              <Text style={fontDisplay} className="text-[46px] leading-none text-[#6e1018]">
+              <Text style={[fontDisplay, inkStyle]} className="text-[46px] leading-none">
                 Whot
               </Text>
-              <Text style={fontBold} className="text-[7px] tracking-[2px] text-[#6e1018]/55">
+              <Text style={[fontBold, { color: inkAlpha(0.55) }]} className="text-[7px] tracking-[2px]">
                 W H O T
               </Text>
-              <Text style={fontReg} className="mt-0.5 text-center text-[6px] tracking-[0.5px] text-[#6e1018]/45">
+              <Text style={[fontReg, { color: inkAlpha(0.45) }]} className="mt-0.5 text-center text-[6px] tracking-[0.5px]">
                 A GAME FOR EVERYONE
               </Text>
             </View>
           ) : (
             <Text
-              style={fontBold}
-              className={cn("leading-none text-[#6e1018]", CENTER_GLYPH_CLASS[card.shape])}
+              style={[fontBold, inkStyle]}
+              className={cn("leading-none", CENTER_GLYPH_CLASS[card.shape])}
             >
               {glyph}
             </Text>
@@ -89,7 +98,7 @@ export function CardFront({ card, rotated }: CardFrontProps) {
 
         {!isWhot ? (
           <View className="absolute bottom-1 left-0">
-            <Text style={fontReg} className="text-[8px] tracking-wide text-[#6e1018]/80">
+            <Text style={[fontReg, { color: inkAlpha(0.8) }]} className="text-[8px] tracking-wide">
               {title}
             </Text>
           </View>

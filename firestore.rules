@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Rooms are 4-char codes. Anyone authed can read so a joiner can
+    // check existence. Writes are gated to room participants only.
+    match /rooms/{code} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      function isParticipant(data) {
+        return request.auth.uid == data.hostId
+            || request.auth.uid == data.guestId;
+      }
+
+      allow read: if isSignedIn();
+
+      // Create: caller must claim the host seat themselves.
+      allow create: if isSignedIn()
+        && request.resource.data.hostId == request.auth.uid
+        && request.resource.data.guestId == null
+        && request.resource.data.code == code
+        && request.resource.data.expiresAt is timestamp;
+
+      // Update paths, each gated separately:
+      //  1. Guest joining: anyone signed-in may claim an empty guest seat
+      //     by writing their own uid (and only their own uid).
+      //  2. Existing participant making an update that keeps guestId as-is.
+      //  3. Existing participant clearing the guest seat (leave).
+      // In all cases hostId is immutable.
+      allow update: if isSignedIn()
+        && request.resource.data.hostId == resource.data.hostId
+        && (
+          (resource.data.guestId == null
+            && request.resource.data.guestId == request.auth.uid)
+          || (isParticipant(resource.data)
+            && request.resource.data.guestId == resource.data.guestId)
+          || (isParticipant(resource.data)
+            && request.resource.data.guestId == null)
+        );
+
+      // Delete: only host can wipe the room.
+      allow delete: if isSignedIn() && resource.data.hostId == request.auth.uid;
+
+      // Per-room game state. Single doc at `state/current` holds the
+      // authoritative GameState. Only the participant whose turn it is
+      // may write — we check by reading the parent room for the seat
+      // mapping and the doc itself for `turn`.
+      match /state/{stateId} {
+        function room() {
+          return get(/databases/$(database)/documents/rooms/$(code)).data;
+        }
+        function callerSeat() {
+          return request.auth.uid == room().hostId ? 'host'
+               : request.auth.uid == room().guestId ? 'guest'
+               : null;
+        }
+
+        allow read: if isSignedIn() && isParticipant(room());
+
+        // Only the host writes the initial state, and only once.
+        allow create: if isSignedIn()
+          && request.auth.uid == room().hostId
+          && request.resource.data.turn in ['host', 'guest'];
+
+        // Updates must come from whoever's turn it currently is. After
+        // the round ends (winner != null), either participant may write
+        // (to start a new round).
+        allow update: if isSignedIn()
+          && isParticipant(room())
+          && (
+            resource.data.winner != null
+            || resource.data.turn == callerSeat()
+          );
+      }
+
+      // Append-only move log. Used for replay, debugging, and lets
+      // clients reconcile when they reconnect mid-game.
+      match /moves/{seq} {
+        function room() {
+          return get(/databases/$(database)/documents/rooms/$(code)).data;
+        }
+        allow read: if isSignedIn() && isParticipant(room());
+        allow create: if isSignedIn()
+          && isParticipant(room())
+          && request.resource.data.actor == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+  }
+}

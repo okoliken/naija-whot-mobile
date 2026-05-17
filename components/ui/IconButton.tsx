@@ -2,6 +2,7 @@ import Feather from "@expo/vector-icons/Feather";
 import type { ComponentProps } from "react";
 import { Pressable } from "react-native";
 
+import { hapticsImpactLight } from "@/src/lib/haptics";
 import { useAppTheme } from "../theme/ThemeContext";
 
 type FeatherName = ComponentProps<typeof Feather>["name"];
@@ -15,7 +16,10 @@ export function IconButton({ name, onPress }: IconButtonProps) {
   const theme = useAppTheme();
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        if (onPress) hapticsImpactLight();
+        onPress?.();
+      }}
       className="h-11 w-11 items-center justify-center rounded-2xl border active:opacity-90"
       style={{
         borderColor: theme.border,

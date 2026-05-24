@@ -9,6 +9,16 @@ export type RoomDoc = {
   expiresAt: Timestamp;
   hostId: string | null;
   guestId: string | null;
+  /**
+   * Whether each seat currently has the in-game screen mounted/foregrounded.
+   * Soft-leave (navigate back / app background) flips these to false so the
+   * other client can render an "Opponent stepped away" banner.
+   * Hard-leave (app killed mid-game) won't flip the flag — that's a known
+   * limitation; the value will sit at `true` until they return or the room
+   * expires via TTL.
+   */
+  hostPresent?: boolean;
+  guestPresent?: boolean;
 };
 
 export type RoomState =

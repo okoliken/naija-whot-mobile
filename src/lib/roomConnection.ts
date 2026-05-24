@@ -8,7 +8,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "./firebase";
-import type { RoomDoc, RoomState } from "./roomTypes";
+import type { RoomDoc, RoomState, Seat } from "./roomTypes";
 
 const ROOM_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -92,6 +92,25 @@ export async function setupJoinRoom(
   }
 
   return { ok: true };
+}
+
+/**
+ * Mark a seat as present/away in the room doc. Called when the in-game
+ * screen mounts/unmounts and on AppState changes. Best-effort — failures
+ * are swallowed because the room doc may have just been deleted (host
+ * ended the game) and we don't want to spam errors during teardown.
+ */
+export async function setRoomPresence(
+  ref: DocumentReference,
+  seat: Seat,
+  present: boolean,
+): Promise<void> {
+  const field = seat === "host" ? "hostPresent" : "guestPresent";
+  try {
+    await updateDoc(ref, { [field]: present });
+  } catch {
+    // intentionally silent — room may not exist or rules may have changed
+  }
 }
 
 export function roomStateFromDoc(

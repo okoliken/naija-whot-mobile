@@ -4,7 +4,7 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
-import { useCallback, useRef, type RefObject } from "react";
+import { useRef, type RefObject } from "react";
 import { Pressable, Text, View } from "react-native";
 import { BRAND, ON_BRAND, ON_BRAND_DIM } from "../../theme/theme";
 import { useAppTheme, useThemeMode } from "../../theme/ThemeContext";
@@ -19,9 +19,12 @@ const THEME_OPTIONS: { value: ThemeMode; label: string; glyph: string }[] = [
 ];
 
 type Props = {
-  difficulty: Difficulty;
-  onDifficultyChange: (d: Difficulty) => void;
+  /** Omit in multiplayer — the difficulty selector hides when no value is passed. */
+  difficulty?: Difficulty;
+  onDifficultyChange?: (d: Difficulty) => void;
   history: RoundResult[];
+  /** Label for the opponent in stats/history. Defaults to "CPU" for single-player. */
+  opponentLabel?: string;
   ref?: RefObject<BottomSheetModal | null>;
 };
 
@@ -29,6 +32,7 @@ export function ControlCenterModal({
   difficulty,
   onDifficultyChange,
   history,
+  opponentLabel = "CPU",
   ref,
 }: Props) {
   const theme = useAppTheme();
@@ -36,16 +40,15 @@ export function ControlCenterModal({
   const internalRef = useRef<BottomSheetModal>(null);
   const sheetRef = ref ?? internalRef;
 
-  const renderBackdrop = useCallback(
-    (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.75}
-      />
-    ),
-    [],
+  const renderBackdrop = (
+    props: React.ComponentProps<typeof BottomSheetBackdrop>,
+  ) => (
+    <BottomSheetBackdrop
+      {...props}
+      disappearsOnIndex={-1}
+      appearsOnIndex={0}
+      opacity={0.75}
+    />
   );
 
   const wins = history.filter((r) => r.winner === "human").length;
@@ -202,61 +205,65 @@ export function ControlCenterModal({
           })}
         </View>
 
-        {/* Difficulty */}
-        <Text
-          style={[
-            FontStyle.ui.semi,
-            {
-              marginBottom: 12,
-              fontSize: 13,
-              color: theme.textSecondary,
-            },
-          ]}
-        >
-          Difficulty
-        </Text>
-        <View className="mb-8 flex-row gap-2">
-          {DIFFICULTIES.map((d) => {
-            const active = d === difficulty;
-            return (
-              <Pressable
-                key={d}
-                onPress={() => onDifficultyChange(d)}
-                className="flex-1 items-center rounded-xl py-3"
-                style={{
-                  backgroundColor: active ? BRAND : theme.surfaceAlt,
-                  borderWidth: 1,
-                  borderColor: active ? BRAND : theme.border,
-                }}
-              >
-                <Text
-                  style={[
-                    FontStyle.ui.bold,
-                    {
-                      fontSize: 12,
-                      letterSpacing: 2.4,
-                      color: active ? ON_BRAND : theme.textSecondary,
-                    },
-                  ]}
-                >
-                  {d.toUpperCase()}
-                </Text>
-                <Text
-                  style={[
-                    FontStyle.ui.regular,
-                    {
-                      marginTop: 4,
-                      fontSize: 9,
-                      color: active ? ON_BRAND_DIM : theme.textSubtle,
-                    },
-                  ]}
-                >
-                  {DIFFICULTY_DESC[d]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {/* Difficulty (single-player only) */}
+        {difficulty && onDifficultyChange ? (
+          <>
+            <Text
+              style={[
+                FontStyle.ui.semi,
+                {
+                  marginBottom: 12,
+                  fontSize: 13,
+                  color: theme.textSecondary,
+                },
+              ]}
+            >
+              Difficulty
+            </Text>
+            <View className="mb-8 flex-row gap-2">
+              {DIFFICULTIES.map((d) => {
+                const active = d === difficulty;
+                return (
+                  <Pressable
+                    key={d}
+                    onPress={() => onDifficultyChange(d)}
+                    className="flex-1 items-center rounded-xl py-3"
+                    style={{
+                      backgroundColor: active ? BRAND : theme.surfaceAlt,
+                      borderWidth: 1,
+                      borderColor: active ? BRAND : theme.border,
+                    }}
+                  >
+                    <Text
+                      style={[
+                        FontStyle.ui.bold,
+                        {
+                          fontSize: 12,
+                          letterSpacing: 2.4,
+                          color: active ? ON_BRAND : theme.textSecondary,
+                        },
+                      ]}
+                    >
+                      {d.toUpperCase()}
+                    </Text>
+                    <Text
+                      style={[
+                        FontStyle.ui.regular,
+                        {
+                          marginTop: 4,
+                          fontSize: 9,
+                          color: active ? ON_BRAND_DIM : theme.textSubtle,
+                        },
+                      ]}
+                    >
+                      {DIFFICULTY_DESC[d]}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
+        ) : null}
 
         {/* History */}
         <Text
@@ -306,7 +313,7 @@ export function ControlCenterModal({
                     },
                   ]}
                 >
-                  {r.winner === "human" ? "You won" : "CPU won"}
+                  {r.winner === "human" ? "You won" : `${opponentLabel} won`}
                 </Text>
                 <Text
                   style={[FontStyle.ui.regular, { fontSize: 12, color: theme.textMuted }]}

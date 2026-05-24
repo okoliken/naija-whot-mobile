@@ -10,7 +10,7 @@ import { ShapePickerModal } from "../components/game/modals/ShapePickerModal";
 import { TableSection } from "../components/game/board/TableSection";
 import { WinModal, type RoundResult } from "../components/game/modals/WinModal";
 import { useAppTheme } from "../components/theme/ThemeContext";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView } from "react-native";
 import {
   SafeAreaView,
@@ -108,13 +108,13 @@ export default function GameScreen() {
     setFlyCard(topCard);
   }, [topCard, turn]);
 
-  const handleRestart = useCallback(() => {
+  const handleRestart = () => {
     isFirstCard.current = true;
     prevTopCardId.current = null;
     setFlyCard(null);
     roundCountRef.current += 1;
     startGame();
-  }, [startGame]);
+  };
 
   useEffect(() => {
     if (turn !== "computer" || !gameStarted || winner || awaitingShapeChoice)

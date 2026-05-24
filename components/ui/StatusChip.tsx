@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import Animated, {
+  cancelAnimation,
   Easing,
   FadeInDown,
   FadeOutUp,
@@ -46,6 +47,10 @@ export function StatusChip({ label, accent = "default" }: StatusChipProps) {
         false,
       ),
     );
+    return () => {
+      cancelAnimation(shimmer1);
+      cancelAnimation(shimmer2);
+    };
   }, [shimmer1, shimmer2]);
 
   // Glow pulse — strong
@@ -59,6 +64,7 @@ export function StatusChip({ label, accent = "default" }: StatusChipProps) {
       -1,
       false,
     );
+    return () => cancelAnimation(glow);
   }, [glow]);
 
   // Scale pulse for warning urgency
@@ -73,9 +79,9 @@ export function StatusChip({ label, accent = "default" }: StatusChipProps) {
         -1,
         false,
       );
-    } else {
-      scale.value = withTiming(1, { duration: 180 });
+      return () => cancelAnimation(scale);
     }
+    scale.value = withTiming(1, { duration: 180 });
   }, [isWarning, scale]);
 
   // Label crossfade

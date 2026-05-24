@@ -63,6 +63,7 @@ export function ShapePickerModal({ shapes, onChoose }: Props) {
     <BottomSheetModal
       ref={sheetRef}
       snapPoints={["32%"]}
+      enableDynamicSizing={false}
       enablePanDownToClose={false}
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: theme.surface }}

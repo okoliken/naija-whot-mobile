@@ -1,4 +1,5 @@
 import {
+  deleteDoc,
   doc,
   onSnapshot,
   runTransaction,
@@ -8,6 +9,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 
 import { db } from "@/src/lib/firebase";
+import { getFirestoreErrorHint } from "@/src/lib/roomConnection";
 import type { Seat } from "@/src/lib/roomTypes";
 import { useAuthUid } from "@/src/lib/useAuthUid";
 import type { Card, Shape } from "@/src/store/game/types";
@@ -26,6 +28,15 @@ type Args = {
   seat: Seat;
 };
 
+/**
+ * High-level lifecycle of the room as observed from the game screen.
+ * - `connecting`: waiting for first snapshot
+ * - `live`: room doc + state doc both present
+ * - `ended`: room doc was deleted (host pressed End Game)
+ * - `lost`: snapshot listener errored (network/permissions/etc.)
+ */
+export type RoomStatus = "connecting" | "live" | "ended" | "lost";
+
 export type NetworkedGameView = {
   state: NetGameState | null;
   mySeat: Seat;
@@ -37,6 +48,10 @@ export type NetworkedGameView = {
   isMyTurn: boolean;
   /** Last write error from a rejected intent — show as a toast or banner. */
   lastError: string | null;
+  /** Listener-level error (room or state snapshot failed). */
+  connectionError: string | null;
+  /** Coarse room lifecycle for the screen to route on. */
+  roomStatus: RoomStatus;
   /** Intent: play `cardIndex` from my hand. */
   playCard: (cardIndex: number) => Promise<void>;
   /** Intent: draw from market. */
@@ -45,12 +60,36 @@ export type NetworkedGameView = {
   chooseShape: (shape: Exclude<Shape, "whot">) => Promise<void>;
   /** Host-only: deal a new round. No-op for the guest seat. */
   startNewRound: () => Promise<void>;
+  /** Host-only: delete the room. Both clients will see `roomStatus === 'ended'`. */
+  endGame: () => Promise<void>;
 };
 
 export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
   const uid = useAuthUid();
   const [state, setState] = useState<NetGameState | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [roomExists, setRoomExists] = useState<boolean | null>(null);
+
+  // Subscribe to the parent room doc. We need this to detect when the
+  // host deletes the room (End Game) — the game-state subdoc lingers as
+  // an orphan in Firestore, so we can't infer end-game from that listener.
+  useEffect(() => {
+    if (!uid) return;
+    const roomRef = doc(db, "rooms", code);
+    return onSnapshot(
+      roomRef,
+      (snap) => {
+        setConnectionError(null);
+        setRoomExists(snap.exists());
+      },
+      (err) => {
+        const { hint } = getFirestoreErrorHint(err);
+        console.warn("[useNetworkedGame] room snapshot error", err);
+        setConnectionError(hint);
+      },
+    );
+  }, [code, uid]);
 
   // Subscribe to authoritative state. Both clients listen; only the writer
   // for the current turn is permitted by security rules to update.
@@ -67,7 +106,9 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
         setState(snap.data() as NetGameState);
       },
       (err) => {
-        console.warn("[useNetworkedGame] snapshot error", err);
+        const { hint } = getFirestoreErrorHint(err);
+        console.warn("[useNetworkedGame] state snapshot error", err);
+        setConnectionError(hint);
       },
     );
   }, [code, uid]);
@@ -154,11 +195,34 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
     }
   }, [code, seat]);
 
+  // Host-only End Game. Firestore rules only allow the host to delete the
+  // room doc. Both clients see the deletion via the room snapshot listener
+  // and surface `roomStatus === 'ended'` so the screen can route out.
+  const endGame = useCallback(async () => {
+    if (seat !== "host") return;
+    setLastError(null);
+    try {
+      await deleteDoc(doc(db, "rooms", code));
+    } catch (err) {
+      const { hint } = getFirestoreErrorHint(err);
+      setLastError(hint);
+    }
+  }, [code, seat]);
+
   const myHand = state ? (seat === "host" ? state.hostHand : state.guestHand) : [];
   const opponentHandSize = state
     ? (seat === "host" ? state.guestHand.length : state.hostHand.length)
     : 0;
   const isMyTurn = !!state && state.turn === seat && !state.winner && !state.awaitingShapeChoice;
+
+  // `connecting` while we haven't seen the room snapshot yet. After that,
+  // the room either exists (`live`) or has been deleted (`ended`). A
+  // listener error overrides everything as `lost`.
+  let roomStatus: RoomStatus;
+  if (connectionError) roomStatus = "lost";
+  else if (roomExists === null) roomStatus = "connecting";
+  else if (roomExists === false) roomStatus = "ended";
+  else roomStatus = "live";
 
   return {
     state,
@@ -167,9 +231,12 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
     opponentHandSize,
     isMyTurn,
     lastError,
+    connectionError,
+    roomStatus,
     playCard,
     drawCard,
     chooseShape,
     startNewRound,
+    endGame,
   };
 }

@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { 
+  StyleSheet, 
+  useWindowDimensions,
+  View } 
+  from "react-native";
 import Animated, {
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -86,6 +91,16 @@ export function CardFlyOverlay({ card, origin }: Props) {
       ),
     );
   }, [card, origin, height, width]);
+
+  useEffect(() => {
+    return () => {
+      cancelAnimation(ty);
+      cancelAnimation(tx);
+      cancelAnimation(rot);
+      cancelAnimation(sc);
+      cancelAnimation(op);
+    };
+  }, [ty, tx, rot, sc, op]);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [

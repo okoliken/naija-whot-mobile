@@ -14,15 +14,29 @@ export function OpponentStack({ count }: OpponentStackProps) {
 
   return (
     <View className="items-center pt-1">
-      <View className="flex-row items-end justify-center">
-        {Array.from({ length: shown }).map((_, i) => (
+      <View className="min-h-[140px] flex-row items-end justify-center">
+        {shown === 0 ? (
           <View
-            key={`opp-${i}`}
-            className={cn(i > 0 && "-ml-9", i % 2 === 0 ? "-rotate-3" : "rotate-3")}
+            className="min-w-[180px] items-center justify-center rounded-2xl border border-dashed px-5 py-6"
+            style={{ borderColor: theme.border }}
           >
-            <CardBack compact />
+            <Text
+              className="text-center text-[12px]"
+              style={{ fontFamily: Font.ui.semi, color: theme.textSecondary }}
+            >
+              No cards
+            </Text>
           </View>
-        ))}
+        ) : (
+          Array.from({ length: shown }).map((_, i) => (
+            <View
+              key={`opp-${i}`}
+              className={cn(i > 0 && "-ml-9", i % 2 === 0 ? "-rotate-3" : "rotate-3")}
+            >
+              <CardBack compact />
+            </View>
+          ))
+        )}
       </View>
       <View
         className="mt-2 rounded-full border px-3 py-1"

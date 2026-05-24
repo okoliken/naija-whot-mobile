@@ -51,6 +51,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
     <BottomSheetModal
       ref={sheetRef}
       snapPoints={["55%", "90%"]}
+      enableDynamicSizing={false}
       enablePanDownToClose={false}
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: theme.surface }}

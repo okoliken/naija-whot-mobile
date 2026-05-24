@@ -55,6 +55,7 @@ export function ControlCenterModal({
     <BottomSheetModal
       ref={sheetRef}
       snapPoints={["52%", "88%"]}
+      enableDynamicSizing={false}
       enablePanDownToClose
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: theme.surface }}

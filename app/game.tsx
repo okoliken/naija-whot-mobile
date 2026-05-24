@@ -16,6 +16,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { useShallow } from "zustand/react/shallow";
 import type { Card, Player } from "@/src/store/gameStore";
 
 export default function GameScreen() {
@@ -34,13 +35,30 @@ export default function GameScreen() {
     gameStarted,
     winner,
     difficulty,
-    startGame,
-    drawHumanCard,
-    playHumanCard,
-    chooseShape,
-    runComputerTurn,
-    setDifficulty,
-  } = useGameStore();
+  } = useGameStore(
+    useShallow((s) => ({
+      deck: s.deck,
+      topCard: s.topCard,
+      humanHand: s.humanHand,
+      computerHand: s.computerHand,
+      turn: s.turn,
+      pendingPick: s.pendingPick,
+      skipNextPlayer: s.skipNextPlayer,
+      requestedShape: s.requestedShape,
+      awaitingShapeChoice: s.awaitingShapeChoice,
+      aiTurnTick: s.aiTurnTick,
+      message: s.message,
+      gameStarted: s.gameStarted,
+      winner: s.winner,
+      difficulty: s.difficulty,
+    })),
+  );
+  const startGame = useGameStore((s) => s.startGame);
+  const drawHumanCard = useGameStore((s) => s.drawHumanCard);
+  const playHumanCard = useGameStore((s) => s.playHumanCard);
+  const chooseShape = useGameStore((s) => s.chooseShape);
+  const runComputerTurn = useGameStore((s) => s.runComputerTurn);
+  const setDifficulty = useGameStore((s) => s.setDifficulty);
 
   const controlCenterRef = useRef<BottomSheetModal>(null);
 

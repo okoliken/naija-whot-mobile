@@ -1,16 +1,21 @@
 import {
   deleteDoc,
   doc,
+  getDoc,
   onSnapshot,
   runTransaction,
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { AppState } from "react-native";
 
 import { db } from "@/src/lib/firebase";
-import { getFirestoreErrorHint } from "@/src/lib/roomConnection";
-import type { Seat } from "@/src/lib/roomTypes";
+import {
+  getFirestoreErrorHint,
+  setRoomPresence,
+} from "@/src/lib/roomConnection";
+import type { RoomDoc, Seat } from "@/src/lib/roomTypes";
 import { useAuthUid } from "@/src/lib/useAuthUid";
 import type { Card, Shape } from "@/src/store/game/types";
 
@@ -21,6 +26,7 @@ import {
   createInitialNetState,
   isError,
 } from "./netEngine";
+import { parseNetGameState } from "./parseNetGameState";
 import type { NetGameState } from "./netTypes";
 
 type Args = {
@@ -52,6 +58,13 @@ export type NetworkedGameView = {
   connectionError: string | null;
   /** Coarse room lifecycle for the screen to route on. */
   roomStatus: RoomStatus;
+  /**
+   * Whether the opponent currently has the game screen mounted and in the
+   * foreground. `null` while we haven't observed a value yet (e.g., on a
+   * legacy room doc written before the presence fields existed) — render
+   * UI as if they're present in that case.
+   */
+  opponentPresent: boolean | null;
   /** Intent: play `cardIndex` from my hand. */
   playCard: (cardIndex: number) => Promise<void>;
   /** Intent: draw from market. */
@@ -70,10 +83,12 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
   const [lastError, setLastError] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [roomExists, setRoomExists] = useState<boolean | null>(null);
+  const [opponentPresent, setOpponentPresent] = useState<boolean | null>(null);
 
   // Subscribe to the parent room doc. We need this to detect when the
   // host deletes the room (End Game) — the game-state subdoc lingers as
   // an orphan in Firestore, so we can't infer end-game from that listener.
+  // We also read the opponent's presence flag here.
   useEffect(() => {
     if (!uid) return;
     const roomRef = doc(db, "rooms", code);
@@ -82,6 +97,16 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
       (snap) => {
         setConnectionError(null);
         setRoomExists(snap.exists());
+        if (!snap.exists()) {
+          setOpponentPresent(null);
+          return;
+        }
+        const data = snap.data() as RoomDoc;
+        const oppFlag = seat === "host" ? data.guestPresent : data.hostPresent;
+        // `undefined` on legacy docs — treat as present so we don't show a
+        // false-positive "away" banner against rooms written before this
+        // field existed.
+        setOpponentPresent(oppFlag === undefined ? null : oppFlag);
       },
       (err) => {
         const { hint } = getFirestoreErrorHint(err);
@@ -89,7 +114,29 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
         setConnectionError(hint);
       },
     );
-  }, [code, uid]);
+  }, [code, uid, seat]);
+
+  // Write my own presence flag to the room doc.
+  // - On mount: mark present.
+  // - On unmount (navigate back): mark away.
+  // - On AppState change: foreground -> present, background -> away.
+  // Hard-leave (process killed without unmount) won't fire either of the
+  // last two — the flag stays `true` until the room's TTL kicks in or the
+  // host ends the game. That's the documented limitation.
+  useEffect(() => {
+    if (!uid) return;
+    const roomRef = doc(db, "rooms", code);
+    void setRoomPresence(roomRef, seat, true);
+
+    const sub = AppState.addEventListener("change", (next) => {
+      void setRoomPresence(roomRef, seat, next === "active");
+    });
+
+    return () => {
+      sub.remove();
+      void setRoomPresence(roomRef, seat, false);
+    };
+  }, [code, uid, seat]);
 
   // Subscribe to authoritative state. Both clients listen; only the writer
   // for the current turn is permitted by security rules to update.
@@ -103,7 +150,13 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
           setState(null);
           return;
         }
-        setState(snap.data() as NetGameState);
+        const parsed = parseNetGameState(snap.data());
+        if (parsed) {
+          setConnectionError(null);
+          setState(parsed);
+        } else {
+          setState(null);
+        }
       },
       (err) => {
         const { hint } = getFirestoreErrorHint(err);
@@ -113,77 +166,86 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
     );
   }, [code, uid]);
 
-  // Host writes the initial state on first ready. We treat absence of the
-  // state doc as "no game has started yet" — guest waits, host creates.
+  // Host deals once the room exists and the state doc is still missing.
+  // Retries on failure instead of a one-shot timeout so a slow join or
+  // transient rules/network blip doesn't strand both players on a blank board.
   useEffect(() => {
-    if (!uid || seat !== "host" || state !== null) return;
-    // `state === null` covers both "still loading" and "doc doesn't exist".
-    // To distinguish, defer one tick: if after a beat the snapshot listener
-    // still hasn't filled in state, we treat this as a missing doc and
-    // bootstrap. The snapshot listener will then immediately set state.
-    const t = setTimeout(() => {
-      const stateRef = doc(db, "rooms", code, "state", "current");
-      setDoc(stateRef, {
-        ...createInitialNetState(),
-        createdAt: serverTimestamp(),
-      }).catch((err) => {
-        console.warn("[useNetworkedGame] initial deal failed", err);
-      });
-    }, 400);
-    return () => clearTimeout(t);
-  }, [uid, seat, state, code]);
+    if (!uid || seat !== "host" || roomExists !== true) return;
 
-  const writeTransition = useCallback(
-    async (compute: (current: NetGameState) => NetGameState | { error: string }) => {
-      if (!uid) return;
-      setLastError(null);
+    let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-      // Optimistic update: apply the transition to our current local view
-      // immediately so the UI moves in sync with the tap. If the server-side
-      // transaction fails, the snapshot listener will overwrite us with the
-      // authoritative state on the next tick — so no manual rollback needed.
-      setState((prev) => {
-        if (!prev) return prev;
-        const local = compute(prev);
-        return isError(local) ? prev : local;
-      });
-
+    async function dealIfNeeded() {
       const stateRef = doc(db, "rooms", code, "state", "current");
       try {
-        await runTransaction(db, async (tx) => {
-          const snap = await tx.get(stateRef);
-          if (!snap.exists()) throw new Error("Game state not initialized.");
-          const current = snap.data() as NetGameState;
-          const result = compute(current);
-          if (isError(result)) throw new Error(result.error);
-          tx.set(stateRef, result);
+        const snap = await getDoc(stateRef);
+        if (cancelled) return;
+        if (snap.exists()) return;
+
+        await setDoc(stateRef, {
+          ...createInitialNetState(),
+          createdAt: serverTimestamp(),
         });
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Move failed.";
-        setLastError(message);
+        if (cancelled) return;
+        const { hint } = getFirestoreErrorHint(err);
+        console.warn("[useNetworkedGame] initial deal failed", err);
+        setConnectionError(hint);
+        retryTimer = setTimeout(() => {
+          void dealIfNeeded();
+        }, 1500);
       }
-    },
-    [code, uid],
-  );
+    }
 
-  const playCard = useCallback(
-    (cardIndex: number) =>
-      writeTransition((current) => applyPlay(current, seat, cardIndex)),
-    [seat, writeTransition],
-  );
+    void dealIfNeeded();
 
-  const drawCard = useCallback(
-    () => writeTransition((current) => applyDraw(current, seat)),
-    [seat, writeTransition],
-  );
+    return () => {
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+  }, [uid, seat, code, roomExists]);
 
-  const chooseShape = useCallback(
-    (shape: Exclude<Shape, "whot">) =>
-      writeTransition((current) => applyShapeChoice(current, seat, shape)),
-    [seat, writeTransition],
-  );
+  const writeTransition = async (
+    compute: (current: NetGameState) => NetGameState | { error: string },
+  ) => {
+    if (!uid) return;
+    setLastError(null);
 
-  const startNewRound = useCallback(async () => {
+    // Optimistic update: apply the transition to our current local view
+    // immediately so the UI moves in sync with the tap. If the server-side
+    // transaction fails, the snapshot listener will overwrite us with the
+    // authoritative state on the next tick — so no manual rollback needed.
+    setState((prev) => {
+      if (!prev) return prev;
+      const local = compute(prev);
+      return isError(local) ? prev : local;
+    });
+
+    const stateRef = doc(db, "rooms", code, "state", "current");
+    try {
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(stateRef);
+        if (!snap.exists()) throw new Error("Game state not initialized.");
+        const current = snap.data() as NetGameState;
+        const result = compute(current);
+        if (isError(result)) throw new Error(result.error);
+        tx.set(stateRef, result);
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Move failed.";
+      setLastError(message);
+    }
+  };
+
+  const playCard = (cardIndex: number) =>
+    writeTransition((current) => applyPlay(current, seat, cardIndex));
+
+  const drawCard = () => writeTransition((current) => applyDraw(current, seat));
+
+  const chooseShape = (shape: Exclude<Shape, "whot">) =>
+    writeTransition((current) => applyShapeChoice(current, seat, shape));
+
+  const startNewRound = async () => {
     if (seat !== "host") return;
     setLastError(null);
     const stateRef = doc(db, "rooms", code, "state", "current");
@@ -193,12 +255,12 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
       const message = err instanceof Error ? err.message : "Restart failed.";
       setLastError(message);
     }
-  }, [code, seat]);
+  };
 
   // Host-only End Game. Firestore rules only allow the host to delete the
   // room doc. Both clients see the deletion via the room snapshot listener
   // and surface `roomStatus === 'ended'` so the screen can route out.
-  const endGame = useCallback(async () => {
+  const endGame = async () => {
     if (seat !== "host") return;
     setLastError(null);
     try {
@@ -207,7 +269,7 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
       const { hint } = getFirestoreErrorHint(err);
       setLastError(hint);
     }
-  }, [code, seat]);
+  };
 
   const myHand = state ? (seat === "host" ? state.hostHand : state.guestHand) : [];
   const opponentHandSize = state
@@ -233,6 +295,7 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
     lastError,
     connectionError,
     roomStatus,
+    opponentPresent,
     playCard,
     drawCard,
     chooseShape,

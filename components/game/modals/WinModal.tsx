@@ -1,5 +1,5 @@
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { hapticsImpactLight } from "@/src/lib/haptics";
 import { WinConfetti } from "../effects/WinConfetti";
@@ -37,11 +37,10 @@ export function WinModal({ winner, history, onRestart }: Props) {
     };
   }, []);
 
-  const renderBackdrop = useCallback(
-    (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.75} />
-    ),
-    [],
+  const renderBackdrop = (
+    props: React.ComponentProps<typeof BottomSheetBackdrop>,
+  ) => (
+    <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.75} />
   );
 
   const isWin = winner === "human";

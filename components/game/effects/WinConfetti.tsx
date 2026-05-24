@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
@@ -119,10 +119,8 @@ type Props = {
 
 /** In-sheet confetti overlay; parent should use `pointerEvents="none"` and stack above scroll content. Remount with `key` for a new burst. */
 export function WinConfetti({ width, height }: Props) {
-  const pieces = useMemo(
-    () => (width >= 24 && height >= 24 ? buildPieces(width, height) : []),
-    [width, height],
-  );
+  const pieces =
+    width >= 24 && height >= 24 ? buildPieces(width, height) : [];
 
   if (pieces.length === 0) return null;
 

@@ -1,6 +1,6 @@
 import Feather from "@expo/vector-icons/Feather";
 import { router } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Pressable,
   Text,
@@ -25,6 +25,7 @@ import Animated, {
 import { Font } from "../components/theme/fonts";
 import { BRAND, ON_BRAND, ON_BRAND_DIM } from "../components/theme/theme";
 import { useAppTheme } from "../components/theme/ThemeContext";
+import { getLastRoom, type LastRoom } from "@/src/lib/lastRoom";
 import { useRoom } from "@/src/lib/useRoom";
 import type { RoomState } from "@/src/lib/roomTypes";
 
@@ -73,9 +74,9 @@ export default function MultiplayerScreen() {
     setStep("join");
   };
 
-  const handleJoinSubmit = useCallback(() => {
+  const handleJoinSubmit = () => {
     if (joinCode.length === CODE_LENGTH) setSubmittedJoinCode(joinCode);
-  }, [joinCode]);
+  };
 
   const handleResetJoin = () => {
     setSubmittedJoinCode(null);
@@ -149,6 +150,28 @@ function PickStep({
   onJoin: () => void;
 }) {
   const theme = useAppTheme();
+  const [lastRoom, setLastRoomState] = useState<LastRoom | null>(null);
+
+  // Load the most recently active room on mount so we can offer a one-tap
+  // rejoin if the user soft-left (back button or app backgrounded).
+  useEffect(() => {
+    let cancelled = false;
+    getLastRoom().then((r) => {
+      if (!cancelled) setLastRoomState(r);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleRejoin = () => {
+    if (!lastRoom) return;
+    router.replace({
+      pathname: "/multiplayer-game",
+      params: { code: lastRoom.code, seat: lastRoom.seat },
+    });
+  };
+
   return (
     <View style={{ flex: 1, justifyContent: "space-between" }}>
       <View style={{ flex: 1, justifyContent: "center" }}>
@@ -180,6 +203,43 @@ function PickStep({
       </View>
 
       <View style={{ gap: 12 }}>
+        {lastRoom ? (
+          <Pressable
+            onPress={handleRejoin}
+            style={({ pressed }) => ({
+              alignItems: "center",
+              borderRadius: 18,
+              paddingVertical: 18,
+              backgroundColor: theme.surfaceAlt,
+              borderWidth: 1,
+              borderColor: BRAND,
+              opacity: pressed ? 0.85 : 1,
+              ...theme.panelLiftSubtle,
+            })}
+          >
+            <Text
+              style={{
+                fontFamily: Font.ui.bold,
+                fontSize: 13,
+                letterSpacing: 2.4,
+                color: theme.textPrimary,
+              }}
+            >
+              REJOIN · {lastRoom.code}
+            </Text>
+            <Text
+              style={{
+                fontFamily: Font.ui.regular,
+                marginTop: 6,
+                fontSize: 12,
+                color: theme.textMuted,
+              }}
+            >
+              Pick up where you left off
+            </Text>
+          </Pressable>
+        ) : null}
+
         <Pressable
           onPress={onCreate}
           style={({ pressed }) => ({
@@ -344,25 +404,19 @@ function JoinStep({
     return () => clearTimeout(t);
   }, [submittedCode]);
 
-  const handleChange = useCallback(
-    (next: string) => {
-      const cleaned = next
-        .toUpperCase()
-        .replace(/[^A-Z2-9]/g, "")
-        .slice(0, CODE_LENGTH);
-      onChange(cleaned);
-    },
-    [onChange],
-  );
+  const handleChange = (next: string) => {
+    const cleaned = next
+      .toUpperCase()
+      .replace(/[^A-Z2-9]/g, "")
+      .slice(0, CODE_LENGTH);
+    onChange(cleaned);
+  };
 
-  const handleKey = useCallback(
-    (e: TextInputKeyPressEvent) => {
-      if (e.nativeEvent.key === "Enter" && code.length === CODE_LENGTH) {
-        onSubmit();
-      }
-    },
-    [code.length, onSubmit],
-  );
+  const handleKey = (e: TextInputKeyPressEvent) => {
+    if (e.nativeEvent.key === "Enter" && code.length === CODE_LENGTH) {
+      onSubmit();
+    }
+  };
 
   const ready = code.length === CODE_LENGTH;
 

@@ -3,7 +3,7 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
-import { useCallback, useRef, type RefObject } from "react";
+import { useRef, type RefObject } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { BRAND, ON_BRAND } from "./theme/theme";
@@ -55,22 +55,21 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
   const internalRef = useRef<BottomSheetModal>(null);
   const sheetRef = ref ?? internalRef;
 
-  const renderBackdrop = useCallback(
-    (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.75}
-      />
-    ),
-    [],
+  const renderBackdrop = (
+    props: React.ComponentProps<typeof BottomSheetBackdrop>,
+  ) => (
+    <BottomSheetBackdrop
+      {...props}
+      disappearsOnIndex={-1}
+      appearsOnIndex={0}
+      opacity={0.75}
+    />
   );
 
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     sheetRef.current?.dismiss();
     onDismiss?.();
-  }, [onDismiss, sheetRef]);
+  };
 
   return (
     <BottomSheetModal

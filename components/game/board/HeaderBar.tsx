@@ -26,6 +26,8 @@ type HeaderBarProps = {
   opponentLabel?: string;
   /** Multiplayer/host only: closes the room for both players. */
   onEndGame?: () => void;
+  /** When set, replaces the auto turn chip (e.g. while the board is loading). */
+  statusLabel?: string;
 };
 
 export function HeaderBar({
@@ -38,19 +40,23 @@ export function HeaderBar({
   onBack,
   opponentLabel,
   onEndGame,
+  statusLabel,
 }: HeaderBarProps) {
   const theme = useAppTheme();
   const labelFont = { fontFamily: Font.ui.semi } as const;
   const wordmarkFont = { fontFamily: Font.display.bold } as const;
   const subtitleFont = { fontFamily: Font.ui.regular } as const;
 
-  const { variant, label, pulse } = getChipState({
-    winner,
-    turn,
-    pendingPick,
-    requestedShape,
-    opponentLabel,
-  });
+  const chip = statusLabel
+    ? { variant: "cpu" as const, label: statusLabel, pulse: false }
+    : getChipState({
+        winner,
+        turn,
+        pendingPick,
+        requestedShape,
+        opponentLabel,
+      });
+  const { variant, label, pulse } = chip;
   const chipStyles: Record<
     ChipVariant,
     { bg: string; border: string; text: string }

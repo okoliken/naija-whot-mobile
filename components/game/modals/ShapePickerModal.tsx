@@ -1,6 +1,6 @@
 import { SHAPE_LABELS, type GameState } from "@/src/store/gameStore";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
-import { useCallback, useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useAppTheme } from "../../theme/ThemeContext";
 import { Font } from "../../theme/fonts";
@@ -46,17 +46,16 @@ export function ShapePickerModal({ shapes, onChoose }: Props) {
   const fontTitle = { fontFamily: Font.display.bold } as const;
   const fontSemi = { fontFamily: Font.ui.semi } as const;
 
-  const renderBackdrop = useCallback(
-    (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.7}
-        pressBehavior="none"
-      />
-    ),
-    [],
+  const renderBackdrop = (
+    props: React.ComponentProps<typeof BottomSheetBackdrop>,
+  ) => (
+    <BottomSheetBackdrop
+      {...props}
+      disappearsOnIndex={-1}
+      appearsOnIndex={0}
+      opacity={0.7}
+      pressBehavior="none"
+    />
   );
 
   return (

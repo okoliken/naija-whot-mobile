@@ -1,6 +1,7 @@
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Alert, ActivityIndicator, ScrollView, Text, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -11,13 +12,15 @@ import { OpponentSection } from "../components/game/board/OpponentSection";
 import { PlayerSection } from "../components/game/board/PlayerSection";
 import { TableSection } from "../components/game/board/TableSection";
 import { CardFlyOverlay } from "../components/game/cards/CardFlyOverlay";
+import { ControlCenterModal } from "../components/game/modals/ControlCenterModal";
 import { ShapePickerModal } from "../components/game/modals/ShapePickerModal";
 import { WinModal, type RoundResult } from "../components/game/modals/WinModal";
 import { Font } from "../components/theme/fonts";
-import { BRAND, ON_BRAND } from "../components/theme/theme";
 import { useAppTheme } from "../components/theme/ThemeContext";
+import { Banner } from "../components/ui/Banner";
 import { gameShapes, SHAPE_LABELS } from "@/src/store/gameStore";
 import type { Card, Player } from "@/src/store/game/types";
+import { clearLastRoom, setLastRoom } from "@/src/lib/lastRoom";
 import type { Seat } from "@/src/lib/roomTypes";
 import { useNetworkedGame } from "@/src/multiplayer/useNetworkedGame";
 
@@ -29,6 +32,7 @@ export default function MultiplayerGameScreen() {
 
   const insets = useSafeAreaInsets();
   const theme = useAppTheme();
+  const controlCenterRef = useRef<BottomSheetModal>(null);
 
   // Hooks must be unconditional. Guard inside.
   const guarded = code && seat ? { code, seat } : { code: "_invalid", seat: "host" as Seat };
@@ -39,12 +43,12 @@ export default function MultiplayerGameScreen() {
   const me: Player = "human";
   const opp: Player = "computer";
 
-  const handleBack = useCallback(() => {
+  const handleBack = () => {
     if (router.canGoBack()) router.back();
     else router.replace("/");
-  }, []);
+  };
 
-  const handleEndGame = useCallback(() => {
+  const handleEndGame = () => {
     Alert.alert(
       "End game?",
       "This will close the room for both players. You can't undo this.",
@@ -61,7 +65,7 @@ export default function MultiplayerGameScreen() {
         },
       ],
     );
-  }, [game]);
+  };
 
   // When the host deletes the room, both clients see `roomStatus === 'ended'`.
   // Host already pressed through the confirm dialog — just navigate.
@@ -70,16 +74,28 @@ export default function MultiplayerGameScreen() {
   useEffect(() => {
     if (game.roomStatus !== "ended" || endedNoticeShownRef.current) return;
     endedNoticeShownRef.current = true;
+    void clearLastRoom();
+    const goBack = () => {
+      if (router.canGoBack()) router.back();
+      else router.replace("/");
+    };
     if (seat === "host") {
-      handleBack();
+      goBack();
       return;
     }
     Alert.alert(
       "Game ended",
       "The host closed the room. You can start a new game from the lobby.",
-      [{ text: "OK", onPress: handleBack }],
+      [{ text: "OK", onPress: goBack }],
     );
-  }, [game.roomStatus, seat, handleBack]);
+  }, [game.roomStatus, seat]);
+
+  // Remember the active room so the lobby can offer a "Rejoin" tap after
+  // a soft leave. Recorded once per (code, seat) combination.
+  useEffect(() => {
+    if (!code || !seat) return;
+    void setLastRoom({ code, seat });
+  }, [code, seat]);
 
   // History (per-device, ephemeral). Resets on screen unmount.
   const roundCountRef = useRef(1);
@@ -124,24 +140,15 @@ export default function MultiplayerGameScreen() {
     setFlyCard(topCard);
   }, [game.state, seat]);
 
-  const handleRestart = useCallback(() => {
+  const handleRestart = () => {
     isFirstCardRef.current = true;
     prevTopCardIdRef.current = null;
     setFlyCard(null);
     roundCountRef.current += 1;
     game.startNewRound();
-  }, [game]);
+  };
 
   const opponentCount = game.opponentHandSize;
-  const opponentHandPlaceholders = useMemo<Card[]>(
-    () =>
-      Array.from({ length: opponentCount }, (_, i) => ({
-        id: `opp-${i}`,
-        shape: "whot",
-        value: 0,
-      })),
-    [opponentCount],
-  );
 
   // Bail early if route params are missing.
   if (!code || !seat) {
@@ -158,25 +165,69 @@ export default function MultiplayerGameScreen() {
   }
 
   if (!game.state) {
+    const loadingLabel =
+      game.roomStatus === "connecting"
+        ? "Connecting to room…"
+        : seat === "host"
+          ? "Dealing cards…"
+          : "Waiting for host to deal…";
+    const statusChip =
+      game.roomStatus === "connecting"
+        ? "Connecting…"
+        : seat === "host"
+          ? "Setting up table…"
+          : "Waiting for host…";
+
     return (
       <SafeAreaView
         edges={["top", "left", "right"]}
-        style={{
-          flex: 1,
-          backgroundColor: theme.appBg,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        style={{ flex: 1, backgroundColor: theme.appBg }}
       >
-        <Text
-          style={{
-            color: theme.textSecondary,
-            fontFamily: Font.ui.regular,
-            fontSize: 14,
-          }}
-        >
-          {seat === "host" ? "Dealing cards..." : "Waiting for host to deal..."}
-        </Text>
+        <ConnectionBanner
+          connectionError={game.connectionError}
+          writeError={game.lastError}
+          opponentAway={false}
+        />
+        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16, gap: 16 }}>
+          <HeaderBar
+            winner={null}
+            turn="human"
+            pendingPick={0}
+            requestedShape={null}
+            statusLabel={statusChip}
+            onRestart={handleRestart}
+            onSettings={() => controlCenterRef.current?.present()}
+            onBack={handleBack}
+            opponentLabel="Opponent"
+            onEndGame={seat === "host" ? handleEndGame : undefined}
+          />
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 12,
+              paddingHorizontal: 24,
+            }}
+          >
+            <ActivityIndicator color={theme.textSecondary} />
+            <Text
+              style={{
+                color: theme.textSecondary,
+                fontFamily: Font.ui.regular,
+                fontSize: 14,
+                textAlign: "center",
+              }}
+            >
+              {loadingLabel}
+            </Text>
+          </View>
+        </View>
+        <ControlCenterModal
+          ref={controlCenterRef}
+          history={history}
+          opponentLabel="Opponent"
+        />
       </SafeAreaView>
     );
   }
@@ -192,7 +243,7 @@ export default function MultiplayerGameScreen() {
   const isMyTurnUi = game.isMyTurn;
   // Engine writes subject-less messages with {ACTOR} / {WINNER} tokens so the
   // same Firestore doc renders correctly for both seats. Substitute here.
-  const renderedMessage = state.message
+  const renderedMessage = (state.message ?? "")
     .replace("{ACTOR}", state.lastActor === seat ? "You" : "Opponent")
     .replace("{WINNER}", state.winner === seat ? "You" : "Opponent");
   // Write errors are surfaced by <ConnectionBanner /> at the top of the
@@ -202,14 +253,17 @@ export default function MultiplayerGameScreen() {
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
-      className="flex-1"
-      style={{ backgroundColor: theme.appBg }}
+      style={{ flex: 1, backgroundColor: theme.appBg }}
     >
       <ConnectionBanner
         connectionError={game.connectionError}
         writeError={game.lastError}
+        opponentAway={
+          game.opponentPresent === false && game.roomStatus === "live"
+        }
       />
       <ScrollView
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: 16,
@@ -224,7 +278,7 @@ export default function MultiplayerGameScreen() {
           pendingPick={state.pendingPick}
           requestedShape={state.requestedShape ? SHAPE_LABELS[state.requestedShape] : null}
           onRestart={handleRestart}
-          onSettings={() => {}}
+          onSettings={() => controlCenterRef.current?.present()}
           onBack={handleBack}
           opponentLabel="Opponent"
           onEndGame={seat === "host" ? handleEndGame : undefined}
@@ -232,7 +286,7 @@ export default function MultiplayerGameScreen() {
 
         <OpponentSection
           turn={turnForUi}
-          count={opponentHandPlaceholders.length}
+          count={opponentCount}
           label="Opponent"
         />
 
@@ -266,6 +320,12 @@ export default function MultiplayerGameScreen() {
       {winnerForUi ? (
         <WinModal winner={winnerForUi} history={history} onRestart={handleRestart} />
       ) : null}
+
+      <ControlCenterModal
+        ref={controlCenterRef}
+        history={history}
+        opponentLabel="Opponent"
+      />
     </SafeAreaView>
   );
 }
@@ -279,11 +339,12 @@ export default function MultiplayerGameScreen() {
 function ConnectionBanner({
   connectionError,
   writeError,
+  opponentAway,
 }: {
   connectionError: string | null;
   writeError: string | null;
+  opponentAway: boolean;
 }) {
-  const theme = useAppTheme();
   const [dismissedWriteError, setDismissedWriteError] = useState<string | null>(null);
 
   // Reset dismissal when a new write error arrives.
@@ -294,59 +355,31 @@ function ConnectionBanner({
   }, [writeError, dismissedWriteError]);
 
   const showWriteError = writeError && writeError !== dismissedWriteError;
-  if (!connectionError && !showWriteError) return null;
+  if (!connectionError && !showWriteError && !opponentAway) return null;
 
   return (
     <View className="gap-2 px-4 pt-2">
       {connectionError ? (
-        <View
-          className="flex-row items-center gap-2.5 rounded-xl border px-3.5 py-2.5"
-          style={{
-            backgroundColor: theme.danger + "22",
-            borderColor: theme.danger + "55",
-          }}
-        >
-          <View
-            className="h-2 w-2 rounded-full"
-            style={{ backgroundColor: theme.danger }}
-          />
-          <Text
-            className="flex-1 text-[12.5px] leading-[17px]"
-            style={{ fontFamily: Font.ui.semi, color: theme.danger }}
-          >
-            {connectionError}
-          </Text>
-        </View>
+        <Banner tone="danger" message={connectionError} />
+      ) : null}
+
+      {opponentAway ? (
+        <Banner
+          tone="brand"
+          message="Opponent stepped away — they can rejoin with the room code."
+        />
       ) : null}
 
       {showWriteError ? (
-        <View
-          className="flex-row items-center gap-2.5 rounded-xl border px-3.5 py-2.5"
-          style={{
-            backgroundColor: theme.surfaceAlt,
-            borderColor: theme.border,
+        <Banner
+          tone="neutral"
+          message={writeError}
+          showDot={false}
+          action={{
+            label: "OK",
+            onPress: () => setDismissedWriteError(writeError),
           }}
-        >
-          <Text
-            className="flex-1 text-[12.5px] leading-[17px]"
-            style={{ fontFamily: Font.ui.regular, color: theme.textSecondary }}
-          >
-            {writeError}
-          </Text>
-          <Pressable
-            onPress={() => setDismissedWriteError(writeError)}
-            hitSlop={10}
-            className="rounded-lg px-2.5 py-1 active:opacity-85"
-            style={{ backgroundColor: BRAND }}
-          >
-            <Text
-              className="text-[11px] tracking-[1.2px]"
-              style={{ fontFamily: Font.ui.bold, color: ON_BRAND }}
-            >
-              OK
-            </Text>
-          </Pressable>
-        </View>
+        />
       ) : null}
     </View>
   );

@@ -2,7 +2,7 @@ import { hasSeenIntro, markIntroSeen } from "@/src/lib/firstLaunch";
 import { useGameStore } from "@/src/store/gameStore";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 import {
   SafeAreaView,
@@ -32,22 +32,22 @@ export default function HomeScreen() {
     };
   }, []);
 
-  const handleIntroDismiss = useCallback(() => {
+  const handleIntroDismiss = () => {
     markIntroSeen();
-  }, []);
+  };
 
-  const handlePlayCpu = useCallback(() => {
+  const handlePlayCpu = () => {
     startGame();
     router.push("/game");
-  }, [startGame]);
+  };
 
-  const handlePlayPvp = useCallback(() => {
+  const handlePlayPvp = () => {
     router.push("/multiplayer");
-  }, []);
+  };
 
-  const handleHowToPlay = useCallback(() => {
+  const handleHowToPlay = () => {
     howToPlayRef.current?.present();
-  }, []);
+  };
 
   return (
     <SafeAreaView

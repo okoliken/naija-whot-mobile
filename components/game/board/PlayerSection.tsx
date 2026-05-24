@@ -53,40 +53,69 @@ export function PlayerSection({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        className="min-h-[170px]"
         contentContainerStyle={{
+          minHeight: 170,
           paddingHorizontal: 8,
-          gap: 12,
           paddingVertical: 8,
+          gap: 12,
+          alignItems: "center",
+          justifyContent: humanHand.length === 0 ? "center" : "flex-start",
+          flexGrow: humanHand.length === 0 ? 1 : 0,
         }}
       >
-        {humanHand.map((card, index) => {
-          const legal = isPlayableCard(
-            card,
-            topCard,
-            requestedShape,
-            pendingPick,
-          );
-          const interactive = isHumanTurn && legal;
-          return (
-            <Pressable
-              key={card.id}
-              onPress={() => onPlayCard(index)}
-              disabled={!interactive}
-              style={({ pressed }) => ({
-                transform: [
-                  { perspective: 1000 },
-                  { scale: interactive && pressed ? 0.96 : 1 },
-                ],
-                opacity: interactive ? (pressed ? 0.88 : 1) : 0.38,
-              })}
+        {humanHand.length === 0 ? (
+          <View
+            className="min-w-[240px] items-center justify-center rounded-2xl border border-dashed px-6 py-7"
+            style={{ borderColor: theme.border }}
+          >
+            <Text
+              className="text-center text-[13px]"
+              style={{
+                fontFamily: Font.ui.semi,
+                letterSpacing: 0.4,
+                color: theme.textSecondary,
+              }}
             >
-              <CardFront
-                card={card}
-                rotated={index % 2 === 0 ? "-rotate-[2deg]" : "rotate-[2deg]"}
-              />
-            </Pressable>
-          );
-        })}
+              No cards in hand
+            </Text>
+            <Text
+              className="mt-1 text-center text-[11px]"
+              style={{ fontFamily: Font.ui.regular, color: theme.textMuted }}
+            >
+              Round complete.
+            </Text>
+          </View>
+        ) : (
+          humanHand.map((card, index) => {
+            const legal = isPlayableCard(
+              card,
+              topCard,
+              requestedShape,
+              pendingPick,
+            );
+            const interactive = isHumanTurn && legal;
+            return (
+              <Pressable
+                key={card.id}
+                onPress={() => onPlayCard(index)}
+                disabled={!interactive}
+                style={({ pressed }) => ({
+                  transform: [
+                    { perspective: 1000 },
+                    { scale: interactive && pressed ? 0.96 : 1 },
+                  ],
+                  opacity: interactive ? (pressed ? 0.88 : 1) : 0.38,
+                })}
+              >
+                <CardFront
+                  card={card}
+                  rotated={index % 2 === 0 ? "-rotate-[2deg]" : "rotate-[2deg]"}
+                />
+              </Pressable>
+            );
+          })
+        )}
       </ScrollView>
 
       {message ? (

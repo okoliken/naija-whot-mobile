@@ -2,6 +2,7 @@ import { type Player } from "@/src/store/gameStore";
 import { useEffect, useRef } from "react";
 import { Text, View } from "react-native";
 import Animated, {
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -23,6 +24,8 @@ type HeaderBarProps = {
   onBack: () => void;
   /** Defaults to "CPU"; multiplayer passes "Opponent". */
   opponentLabel?: string;
+  /** Multiplayer/host only: closes the room for both players. */
+  onEndGame?: () => void;
 };
 
 export function HeaderBar({
@@ -34,6 +37,7 @@ export function HeaderBar({
   onSettings,
   onBack,
   opponentLabel,
+  onEndGame,
 }: HeaderBarProps) {
   const theme = useAppTheme();
   const labelFont = { fontFamily: Font.ui.semi } as const;
@@ -80,9 +84,9 @@ export function HeaderBar({
         -1,
         false,
       );
-    } else {
-      scale.value = withTiming(1, { duration: 180 });
+      return () => cancelAnimation(scale);
     }
+    scale.value = withTiming(1, { duration: 180 });
   }, [pulse, scale]);
 
   const chipAnim = useAnimatedStyle(() => ({
@@ -130,6 +134,7 @@ export function HeaderBar({
           <IconButton name="arrow-left" onPress={onBack} />
           <IconButton name="settings" onPress={onSettings} />
           <IconButton name="rotate-cw" onPress={onRestart} />
+          {onEndGame ? <IconButton name="x-circle" onPress={onEndGame} /> : null}
         </View>
       </View>
 

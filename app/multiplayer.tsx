@@ -6,14 +6,14 @@ import {
   Text,
   TextInput,
   View,
-  type NativeSyntheticEvent,
-  type TextInputKeyPressEventData,
+  type TextInputKeyPressEvent,
 } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -51,7 +51,7 @@ export default function MultiplayerScreen() {
     null,
   );
 
-  const handleBack = useCallback(() => {
+  const handleBack = () => {
     if (step === "pick") {
       router.back();
     } else {
@@ -60,27 +60,27 @@ export default function MultiplayerScreen() {
       setJoinCode("");
       setSubmittedJoinCode(null);
     }
-  }, [step]);
+  };
 
-  const handleCreate = useCallback(() => {
+  const handleCreate = () => {
     setHostCode(generateCode());
     setStep("create");
-  }, []);
+  };
 
-  const handleJoin = useCallback(() => {
+  const handleJoin = () => {
     setJoinCode("");
     setSubmittedJoinCode(null);
     setStep("join");
-  }, []);
+  };
 
   const handleJoinSubmit = useCallback(() => {
     if (joinCode.length === CODE_LENGTH) setSubmittedJoinCode(joinCode);
   }, [joinCode]);
 
-  const handleResetJoin = useCallback(() => {
+  const handleResetJoin = () => {
     setSubmittedJoinCode(null);
     setJoinCode("");
-  }, []);
+  };
 
   return (
     <SafeAreaView
@@ -356,7 +356,7 @@ function JoinStep({
   );
 
   const handleKey = useCallback(
-    (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+    (e: TextInputKeyPressEvent) => {
       if (e.nativeEvent.key === "Enter" && code.length === CODE_LENGTH) {
         onSubmit();
       }
@@ -589,6 +589,7 @@ function RoomStatusLine({
       -1,
       false,
     );
+    return () => cancelAnimation(dot);
   }, [dot]);
   const dotStyle = useAnimatedStyle(() => ({ opacity: 0.3 + dot.value * 0.7 }));
 

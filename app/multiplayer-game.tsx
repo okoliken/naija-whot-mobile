@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, Text } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -14,6 +14,7 @@ import { CardFlyOverlay } from "../components/game/cards/CardFlyOverlay";
 import { ShapePickerModal } from "../components/game/modals/ShapePickerModal";
 import { WinModal, type RoundResult } from "../components/game/modals/WinModal";
 import { Font } from "../components/theme/fonts";
+import { BRAND, ON_BRAND } from "../components/theme/theme";
 import { useAppTheme } from "../components/theme/ThemeContext";
 import { gameShapes, SHAPE_LABELS } from "@/src/store/gameStore";
 import type { Card, Player } from "@/src/store/game/types";
@@ -42,6 +43,43 @@ export default function MultiplayerGameScreen() {
     if (router.canGoBack()) router.back();
     else router.replace("/");
   }, []);
+
+  const handleEndGame = useCallback(() => {
+    Alert.alert(
+      "End game?",
+      "This will close the room for both players. You can't undo this.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "End game",
+          style: "destructive",
+          onPress: () => {
+            // Fire-and-forget; the room snapshot listener will flip
+            // `roomStatus` to 'ended' on both clients and we'll route out.
+            void game.endGame();
+          },
+        },
+      ],
+    );
+  }, [game]);
+
+  // When the host deletes the room, both clients see `roomStatus === 'ended'`.
+  // Host already pressed through the confirm dialog — just navigate.
+  // Guest needs an explanation before being routed out.
+  const endedNoticeShownRef = useRef(false);
+  useEffect(() => {
+    if (game.roomStatus !== "ended" || endedNoticeShownRef.current) return;
+    endedNoticeShownRef.current = true;
+    if (seat === "host") {
+      handleBack();
+      return;
+    }
+    Alert.alert(
+      "Game ended",
+      "The host closed the room. You can start a new game from the lobby.",
+      [{ text: "OK", onPress: handleBack }],
+    );
+  }, [game.roomStatus, seat, handleBack]);
 
   // History (per-device, ephemeral). Resets on screen unmount.
   const roundCountRef = useRef(1);
@@ -157,7 +195,9 @@ export default function MultiplayerGameScreen() {
   const renderedMessage = state.message
     .replace("{ACTOR}", state.lastActor === seat ? "You" : "Opponent")
     .replace("{WINNER}", state.winner === seat ? "You" : "Opponent");
-  const messageText = game.lastError ?? renderedMessage;
+  // Write errors are surfaced by <ConnectionBanner /> at the top of the
+  // screen, so we leave the per-move message as engine-driven flavor text.
+  const messageText = renderedMessage;
 
   return (
     <SafeAreaView
@@ -165,6 +205,10 @@ export default function MultiplayerGameScreen() {
       className="flex-1"
       style={{ backgroundColor: theme.appBg }}
     >
+      <ConnectionBanner
+        connectionError={game.connectionError}
+        writeError={game.lastError}
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -183,6 +227,7 @@ export default function MultiplayerGameScreen() {
           onSettings={() => {}}
           onBack={handleBack}
           opponentLabel="Opponent"
+          onEndGame={seat === "host" ? handleEndGame : undefined}
         />
 
         <OpponentSection
@@ -222,5 +267,87 @@ export default function MultiplayerGameScreen() {
         <WinModal winner={winnerForUi} history={history} onRestart={handleRestart} />
       ) : null}
     </SafeAreaView>
+  );
+}
+
+/**
+ * Top-of-screen banner that surfaces snapshot errors (network/permissions)
+ * and the most recent rejected write. Renders nothing while the room is
+ * healthy. We keep both messages in one strip so the layout doesn't reflow
+ * as errors come and go.
+ */
+function ConnectionBanner({
+  connectionError,
+  writeError,
+}: {
+  connectionError: string | null;
+  writeError: string | null;
+}) {
+  const theme = useAppTheme();
+  const [dismissedWriteError, setDismissedWriteError] = useState<string | null>(null);
+
+  // Reset dismissal when a new write error arrives.
+  useEffect(() => {
+    if (writeError && writeError !== dismissedWriteError) {
+      setDismissedWriteError(null);
+    }
+  }, [writeError, dismissedWriteError]);
+
+  const showWriteError = writeError && writeError !== dismissedWriteError;
+  if (!connectionError && !showWriteError) return null;
+
+  return (
+    <View className="gap-2 px-4 pt-2">
+      {connectionError ? (
+        <View
+          className="flex-row items-center gap-2.5 rounded-xl border px-3.5 py-2.5"
+          style={{
+            backgroundColor: theme.danger + "22",
+            borderColor: theme.danger + "55",
+          }}
+        >
+          <View
+            className="h-2 w-2 rounded-full"
+            style={{ backgroundColor: theme.danger }}
+          />
+          <Text
+            className="flex-1 text-[12.5px] leading-[17px]"
+            style={{ fontFamily: Font.ui.semi, color: theme.danger }}
+          >
+            {connectionError}
+          </Text>
+        </View>
+      ) : null}
+
+      {showWriteError ? (
+        <View
+          className="flex-row items-center gap-2.5 rounded-xl border px-3.5 py-2.5"
+          style={{
+            backgroundColor: theme.surfaceAlt,
+            borderColor: theme.border,
+          }}
+        >
+          <Text
+            className="flex-1 text-[12.5px] leading-[17px]"
+            style={{ fontFamily: Font.ui.regular, color: theme.textSecondary }}
+          >
+            {writeError}
+          </Text>
+          <Pressable
+            onPress={() => setDismissedWriteError(writeError)}
+            hitSlop={10}
+            className="rounded-lg px-2.5 py-1 active:opacity-85"
+            style={{ backgroundColor: BRAND }}
+          >
+            <Text
+              className="text-[11px] tracking-[1.2px]"
+              style={{ fontFamily: Font.ui.bold, color: ON_BRAND }}
+            >
+              OK
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+    </View>
   );
 }

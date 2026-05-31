@@ -15,7 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { CardFront } from "./CardFront";
-import type { Card } from "@/src/store/gameStore";
+import type { Card } from "@/src/game/gameStore";
 
 type Props = {
   card: Card | null;
@@ -90,7 +90,7 @@ export function CardFlyOverlay({ card, origin }: Props) {
         }),
       ),
     );
-  }, [card, origin, height, width]);
+  }, [card, origin, height, width, ty, tx, rot, sc, op]);
 
   useEffect(() => {
     return () => {

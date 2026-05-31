@@ -10,14 +10,14 @@ import {
 import { useEffect, useState } from "react";
 import { AppState } from "react-native";
 
-import { db } from "@/src/lib/firebase";
+import { db } from "@/src/platform/firebase";
 import {
   getFirestoreErrorHint,
   setRoomPresence,
-} from "@/src/lib/roomConnection";
-import type { RoomDoc, Seat } from "@/src/lib/roomTypes";
-import { useAuthUid } from "@/src/lib/useAuthUid";
-import type { Card, Shape } from "@/src/store/game/types";
+} from "@/src/room/connection";
+import type { RoomDoc, Seat } from "@/src/room/types";
+import { useAuthUid } from "@/src/platform/useAuthUid";
+import type { Card, Shape } from "@/src/game/types";
 
 import {
   applyDraw,

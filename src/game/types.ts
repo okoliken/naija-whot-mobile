@@ -1,5 +1,25 @@
-import type { Difficulty } from "@/types/game";
+/** Types from the `whot` rules engine package. */
+export type CardShape = "Circle" | "Triangle" | "Square" | "Cross" | "Star";
 
+export type CardMove =
+  | "None"
+  | "Hold On"
+  | "Pick Two"
+  | "Pick Three"
+  | "Suspension"
+  | "General Market"
+  | "Whot";
+
+export type CardModel = {
+  id: string;
+  value: number;
+  shape: CardShape;
+  move: CardMove;
+};
+
+export type Difficulty = "easy" | "medium" | "hard";
+
+/** UI / app-layer card and board types (solo + multiplayer). */
 export type Shape = "circle" | "triangle" | "cross" | "star" | "square" | "whot";
 export type Player = "human" | "computer";
 export type PendingPenalty = 2 | 5 | 14 | null;

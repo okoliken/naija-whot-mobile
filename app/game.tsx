@@ -1,4 +1,4 @@
-import { SHAPE_LABELS, gameShapes, useGameStore } from "@/src/store/gameStore";
+import { SHAPE_LABELS, gameShapes, useGameStore } from "@/src/game/gameStore";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import { CardFlyOverlay } from "../components/game/cards/CardFlyOverlay";
@@ -17,7 +17,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { useShallow } from "zustand/react/shallow";
-import type { Card, Player } from "@/src/store/gameStore";
+import type { Card, Player } from "@/src/game/gameStore";
 
 export default function GameScreen() {
   const {
@@ -152,10 +152,6 @@ export default function GameScreen() {
         }}
       >
         <HeaderBar
-          winner={winner}
-          turn={turn}
-          pendingPick={pendingPick}
-          requestedShape={requestedShape ? SHAPE_LABELS[requestedShape] : null}
           onRestart={handleRestart}
           onSettings={() => controlCenterRef.current?.present()}
           onBack={handleBack}

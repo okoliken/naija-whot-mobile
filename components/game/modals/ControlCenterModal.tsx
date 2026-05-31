@@ -1,4 +1,4 @@
-import type { Difficulty } from "@/types/game";
+import type { Difficulty } from "@/src/game/types";
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
@@ -10,12 +10,12 @@ import { BRAND, ON_BRAND, ON_BRAND_DIM } from "../../theme/theme";
 import { useAppTheme, useThemeMode } from "../../theme/ThemeContext";
 import { Font, FontStyle } from "../../theme/fonts";
 import type { RoundResult } from "./WinModal";
-import { DIFFICULTIES, DIFFICULTY_DESC } from "@/src/store/game/constants";
-import type { ThemeMode } from "@/src/lib/themePreference";
+import { DIFFICULTIES, DIFFICULTY_DESC } from "@/src/game/constants";
+import type { ThemeMode } from "@/src/platform/storage/themePreference";
 
-const THEME_OPTIONS: { value: ThemeMode; label: string; glyph: string }[] = [
-  { value: "light", label: "Light", glyph: "☀" },
-  { value: "dark", label: "Dark", glyph: "☾" },
+const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
 ];
 
 type Props = {
@@ -173,21 +173,12 @@ export function ControlCenterModal({
               <Pressable
                 key={opt.value}
                 onPress={() => setMode(opt.value)}
-                className="flex-1 flex-row items-center justify-center gap-2 rounded-lg py-2.5"
+                className="flex-1 items-center justify-center rounded-lg py-2.5"
                 style={{
                   backgroundColor: active ? theme.surface : "transparent",
                   ...(active ? theme.panelLiftSubtle : null),
                 }}
               >
-                <Text
-                  style={{
-                    fontFamily: Font.ui.semi,
-                    fontSize: 14,
-                    color: active ? theme.textPrimary : theme.textMuted,
-                  }}
-                >
-                  {opt.glyph}
-                </Text>
                 <Text
                   style={[
                     FontStyle.ui.semi,

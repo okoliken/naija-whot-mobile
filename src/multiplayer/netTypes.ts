@@ -1,5 +1,5 @@
-import type { Seat } from "@/src/lib/roomTypes";
-import type { Card, Shape } from "@/src/store/game/types";
+import type { Seat } from "@/src/room/types";
+import type { Card, Shape } from "@/src/game/types";
 
 export type RequestedShape = Exclude<Shape, "whot"> | null;
 

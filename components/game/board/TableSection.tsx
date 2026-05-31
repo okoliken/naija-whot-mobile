@@ -1,4 +1,4 @@
-import { type Card } from "@/src/store/gameStore";
+import { type Card } from "@/src/game/gameStore";
 import { Pressable, View } from "react-native";
 import { CardBack } from "../cards/CardBack";
 import { CardFront } from "../cards/CardFront";

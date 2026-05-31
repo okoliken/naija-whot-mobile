@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import type { Seat } from "./roomTypes";
+import type { Seat } from "@/src/room/types";
 
 const LAST_ROOM_KEY = "naija-whot:last-room:v1";
 

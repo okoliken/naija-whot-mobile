@@ -82,8 +82,7 @@ function ConfettiPiece({ height, cfg }: { height: number; cfg: PieceConfig }) {
       cfg.delay + cfg.duration - 320,
       withTiming(0, { duration: 380, easing: Easing.out(Easing.quad) }),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot per piece mount
-  }, []);
+  }, [cfg, height, opacity, rotate, translateX, translateY]);
 
   const animated = useAnimatedStyle(() => ({
     opacity: opacity.value,

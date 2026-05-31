@@ -1,5 +1,5 @@
 import { Text, View } from "react-native";
-import { cn } from "@/src/lib/cn";
+import { cn } from "@/src/platform/cn";
 import { Font } from "../../theme/fonts";
 import { BRAND, CARD_EDGE_RED, ON_BRAND, ON_BRAND_DIM } from "../../theme/theme";
 import { CARD_SIZE, CARD_SIZE_COMPACT } from "./cardTokens";

@@ -1,7 +1,7 @@
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { useLayoutEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { hapticsImpactLight } from "@/src/lib/haptics";
+import { hapticsImpactLight } from "@/src/platform/haptics";
 import { WinConfetti } from "../effects/WinConfetti";
 import { BRAND, ON_BRAND } from "../../theme/theme";
 import { useAppTheme } from "../../theme/ThemeContext";

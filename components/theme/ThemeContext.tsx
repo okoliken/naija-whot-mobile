@@ -1,7 +1,11 @@
 import { createContext, use, useEffect, useState, type ReactNode } from "react";
 import { useColorScheme } from "react-native";
 
-import { loadThemeMode, saveThemeMode, type ThemeMode } from "@/src/lib/themePreference";
+import {
+  loadThemeMode,
+  saveThemeMode,
+  type ThemeMode,
+} from "@/src/platform/storage/themePreference";
 import { darkTheme, lightTheme, type AppTheme } from "./theme";
 
 type ThemeContextValue = {
@@ -20,7 +24,9 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const scheme = useColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>(scheme === "light" ? "light" : "dark");
+  const [mode, setModeState] = useState<ThemeMode>(
+    scheme === "light" ? "light" : "dark",
+  );
 
   useEffect(() => {
     let cancelled = false;

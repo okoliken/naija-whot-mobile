@@ -60,7 +60,7 @@ export function Banner({
     >
       {showDot ? (
         <View
-          className="h-2 w-2 rounded-full"
+          className="size-2 rounded-full"
           style={{ backgroundColor: tokens.dot }}
         />
       ) : null}

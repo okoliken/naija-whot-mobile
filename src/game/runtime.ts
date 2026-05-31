@@ -1,4 +1,4 @@
-import type { WhotEngine } from "@/services/whotEngine";
+import type { WhotEngine } from "./engine/whotEngine";
 import type { PendingPenalty } from "./types";
 
 export const gameRuntime: {

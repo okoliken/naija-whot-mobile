@@ -1,4 +1,4 @@
-import type { Difficulty } from "@/types/game";
+import type { Difficulty } from "./types";
 import type { Shape } from "./types";
 
 export const SHAPES: Exclude<Shape, "whot">[] = ["circle", "triangle", "cross", "star", "square"];

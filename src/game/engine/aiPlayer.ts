@@ -1,4 +1,4 @@
-import type { CardModel, CardShape, Difficulty } from '../types/game'
+import type { CardModel, CardShape, Difficulty } from "../types";
 
 export interface AiDecision {
   type: 'play' | 'draw'
@@ -44,9 +44,14 @@ export function pickComputerMove(ctx: AiContext, canPlay: CanPlayFn): AiDecision
 }
 
 function collectPlayable(ctx: AiContext, canPlay: CanPlayFn): Playable[] {
-  return ctx.hand
-    .map((card, index) => ({ card, index }))
-    .filter(({ card }) => canPlay(card, ctx.topCard, ctx.requestedShape))
+  const out: Playable[] = []
+  for (let index = 0; index < ctx.hand.length; index++) {
+    const card = ctx.hand[index]
+    if (canPlay(card, ctx.topCard, ctx.requestedShape)) {
+      out.push({ card, index })
+    }
+  }
+  return out
 }
 
 /* ---------- Easy ---------- */

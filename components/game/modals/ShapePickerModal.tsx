@@ -1,4 +1,4 @@
-import { SHAPE_LABELS, type GameState } from "@/src/store/gameStore";
+import { SHAPE_LABELS, type GameState } from "@/src/game/gameStore";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useLayoutEffect, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -35,10 +35,10 @@ export function ShapePickerModal({ shapes, onChoose }: Props) {
   const sheetRef = useRef<BottomSheetModal>(null);
 
   useLayoutEffect(() => {
-    const t = setTimeout(() => sheetRef.current?.present(), 80);
+    const sheet = sheetRef.current;
+    const t = setTimeout(() => sheet?.present(), 80);
     return () => {
       clearTimeout(t);
-      const sheet = sheetRef.current;
       sheet?.dismiss();
     };
   }, []);

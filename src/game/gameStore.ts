@@ -5,11 +5,11 @@ import {
   hapticsRoundLost,
   hapticsRoundWon,
   hapticsTurnHandoff,
-} from "@/src/lib/haptics";
-import { pickComputerMove } from "@/services/aiPlayer";
-import { isMarketDepletedError } from "@/services/whotEngine";
+} from "@/src/platform/haptics";
+import { pickComputerMove } from "./engine/aiPlayer";
+import { isMarketDepletedError } from "./engine/whotEngine";
 import { create } from "zustand";
-import type { Difficulty } from "@/types/game";
+import type { Difficulty } from "./types";
 import {
   SHAPES,
   SHAPE_LABELS,
@@ -25,11 +25,11 @@ import {
   syncHands,
   toAiCard,
   toUiCard,
-} from "./game/helpers";
-import { gameRuntime } from "./game/runtime";
-import type { GameState, Player } from "./game/types";
+} from "./helpers";
+import { gameRuntime } from "./runtime";
+import type { GameState, Player } from "./types";
 
-export type { Card, GameState, Player, Shape } from "./game/types";
+export type { Card, GameState, Player, Shape } from "./types";
 
 export const useGameStore = create<GameState>((set, get) => ({
   ...createInitialRoundState(),

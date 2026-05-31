@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
-import { type Card } from "@/src/store/gameStore";
-import { cn } from "@/src/lib/cn";
+import { type Card } from "@/src/game/gameStore";
+import { cn } from "@/src/platform/cn";
 import { Font } from "../../theme/fonts";
 import {
   CARD_EDGE_PAPER,
@@ -31,6 +31,15 @@ export function CardFront({ card, rotated }: CardFrontProps) {
   const fontDisplay = { fontFamily: Font.card.displayItalic } as const;
 
   const inkStyle = { color: CARD_INK } as const;
+  // Faux-heavier weight for corner values — Cormorant tops out at 700 in
+  // the loaded font set, so we thicken the strokes with a half-pixel
+  // same-color text shadow.
+  const cornerValueStyle = {
+    color: CARD_INK,
+    textShadowColor: CARD_INK,
+    textShadowOffset: { width: 0.6, height: 0 },
+    textShadowRadius: 0.6,
+  } as const;
 
   return (
     <View
@@ -43,7 +52,7 @@ export function CardFront({ card, rotated }: CardFrontProps) {
     >
       <View className="flex-1">
         <View className="absolute left-1 top-1">
-          <Text style={[fontBold, inkStyle]} className={cn("leading-none", cornerValueClass)}>
+          <Text style={[fontBold, cornerValueStyle]} className={cn("leading-none", cornerValueClass)}>
             {card.value}
           </Text>
           <Text
@@ -55,7 +64,7 @@ export function CardFront({ card, rotated }: CardFrontProps) {
         </View>
 
         <View className="absolute bottom-1 right-1 items-end" style={{ transform: [{ rotate: "180deg" }] }}>
-          <Text style={[fontBold, inkStyle]} className={cn("leading-none", cornerValueClass)}>
+          <Text style={[fontBold, cornerValueStyle]} className={cn("leading-none", cornerValueClass)}>
             {card.value}
           </Text>
           <Text

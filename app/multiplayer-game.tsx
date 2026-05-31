@@ -18,10 +18,10 @@ import { WinModal, type RoundResult } from "../components/game/modals/WinModal";
 import { Font } from "../components/theme/fonts";
 import { useAppTheme } from "../components/theme/ThemeContext";
 import { Banner } from "../components/ui/Banner";
-import { gameShapes, SHAPE_LABELS } from "@/src/store/gameStore";
-import type { Card, Player } from "@/src/store/game/types";
-import { clearLastRoom, setLastRoom } from "@/src/lib/lastRoom";
-import type { Seat } from "@/src/lib/roomTypes";
+import { gameShapes, SHAPE_LABELS } from "@/src/game/gameStore";
+import type { Card, Player } from "@/src/game/types";
+import { clearLastRoom, setLastRoom } from "@/src/platform/storage/lastRoom";
+import type { Seat } from "@/src/room/types";
 import { useNetworkedGame } from "@/src/multiplayer/useNetworkedGame";
 
 export default function MultiplayerGameScreen() {
@@ -190,15 +190,9 @@ export default function MultiplayerGameScreen() {
         />
         <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16, gap: 16 }}>
           <HeaderBar
-            winner={null}
-            turn="human"
-            pendingPick={0}
-            requestedShape={null}
-            statusLabel={statusChip}
             onRestart={handleRestart}
             onSettings={() => controlCenterRef.current?.present()}
             onBack={handleBack}
-            opponentLabel="Opponent"
             onEndGame={seat === "host" ? handleEndGame : undefined}
           />
           <View
@@ -273,14 +267,9 @@ export default function MultiplayerGameScreen() {
         }}
       >
         <HeaderBar
-          winner={winnerForUi}
-          turn={turnForUi}
-          pendingPick={state.pendingPick}
-          requestedShape={state.requestedShape ? SHAPE_LABELS[state.requestedShape] : null}
           onRestart={handleRestart}
           onSettings={() => controlCenterRef.current?.present()}
           onBack={handleBack}
-          opponentLabel="Opponent"
           onEndGame={seat === "host" ? handleEndGame : undefined}
         />
 
@@ -347,13 +336,8 @@ function ConnectionBanner({
 }) {
   const [dismissedWriteError, setDismissedWriteError] = useState<string | null>(null);
 
-  // Reset dismissal when a new write error arrives.
-  useEffect(() => {
-    if (writeError && writeError !== dismissedWriteError) {
-      setDismissedWriteError(null);
-    }
-  }, [writeError, dismissedWriteError]);
-
+  // A new writeError automatically shows itself because it won't match
+  // the previously-dismissed value — no reset effect needed.
   const showWriteError = writeError && writeError !== dismissedWriteError;
   if (!connectionError && !showWriteError && !opponentAway) return null;
 

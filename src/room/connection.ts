@@ -7,8 +7,8 @@ import {
   type DocumentReference,
 } from "firebase/firestore";
 
-import { db } from "./firebase";
-import type { RoomDoc, RoomState, Seat } from "./roomTypes";
+import { db } from "@/src/platform/firebase";
+import type { RoomDoc, RoomState, Seat } from "./types";
 
 const ROOM_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -18,6 +18,24 @@ export type RoomSetupResult =
 
 export function roomDocRef(code: string): DocumentReference {
   return doc(db, "rooms", code);
+}
+
+/**
+ * One-shot check the lobby uses to decide whether a remembered room is still
+ * rejoinable. The room may have been ended (host deleted it) or expired via
+ * TTL while we were away from the in-game screen, where teardown normally
+ * clears the saved pointer.
+ *
+ * Returns `null` when the check itself fails (offline / permission) so callers
+ * can stay optimistic rather than hide a room that may well still be live.
+ */
+export async function roomExists(code: string): Promise<boolean | null> {
+  try {
+    const snap = await getDoc(roomDocRef(code));
+    return snap.exists();
+  } catch {
+    return null;
+  }
 }
 
 export function getFirestoreErrorHint(err: unknown): { code: string; hint: string } {

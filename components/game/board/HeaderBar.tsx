@@ -1,104 +1,25 @@
-import { type Player } from "@/src/store/gameStore";
-import { useEffect, useRef } from "react";
 import { Text, View } from "react-native";
-import Animated, {
-  cancelAnimation,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
 import { IconButton } from "../../ui/IconButton";
 import { useAppTheme } from "../../theme/ThemeContext";
 import { Font } from "../../theme/fonts";
-import { getChipState, type ChipVariant } from "./headerChip";
 
 type HeaderBarProps = {
-  winner: Player | null;
-  turn: Player;
-  pendingPick: number;
-  requestedShape: string | null;
   onRestart: () => void;
   onSettings: () => void;
   onBack: () => void;
-  /** Defaults to "CPU"; multiplayer passes "Opponent". */
-  opponentLabel?: string;
   /** Multiplayer/host only: closes the room for both players. */
   onEndGame?: () => void;
-  /** When set, replaces the auto turn chip (e.g. while the board is loading). */
-  statusLabel?: string;
 };
 
 export function HeaderBar({
-  winner,
-  turn,
-  pendingPick,
-  requestedShape,
   onRestart,
   onSettings,
   onBack,
-  opponentLabel,
   onEndGame,
-  statusLabel,
 }: HeaderBarProps) {
   const theme = useAppTheme();
-  const labelFont = { fontFamily: Font.ui.semi } as const;
   const wordmarkFont = { fontFamily: Font.display.bold } as const;
   const subtitleFont = { fontFamily: Font.ui.regular } as const;
-
-  const chip = statusLabel
-    ? { variant: "cpu" as const, label: statusLabel, pulse: false }
-    : getChipState({
-        winner,
-        turn,
-        pendingPick,
-        requestedShape,
-        opponentLabel,
-      });
-  const { variant, label, pulse } = chip;
-  const chipStyles: Record<
-    ChipVariant,
-    { bg: string; border: string; text: string }
-  > = {
-    "your-turn": theme.chipYourTurn,
-    penalty: theme.chipPenalty,
-    shape: theme.chipShape,
-    cpu: theme.chipCpu,
-  };
-  const colors = chipStyles[variant];
-  const prevLabel = useRef(label);
-
-  // Fade on label change
-  const opacity = useSharedValue(1);
-  useEffect(() => {
-    if (label === prevLabel.current) return;
-    prevLabel.current = label;
-    opacity.value = 0;
-    opacity.value = withTiming(1, { duration: 220 });
-  }, [label, opacity]);
-
-  // Pulse scale when a pending penalty is active
-  const scale = useSharedValue(1);
-  useEffect(() => {
-    if (pulse) {
-      scale.value = withRepeat(
-        withSequence(
-          withTiming(1.05, { duration: 420 }),
-          withTiming(1.0, { duration: 420 }),
-        ),
-        -1,
-        false,
-      );
-      return () => cancelAnimation(scale);
-    }
-    scale.value = withTiming(1, { duration: 180 });
-  }, [pulse, scale]);
-
-  const chipAnim = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-  }));
 
   return (
     <View
@@ -143,28 +64,6 @@ export function HeaderBar({
           {onEndGame ? <IconButton name="x-circle" onPress={onEndGame} /> : null}
         </View>
       </View>
-
-      <Animated.View
-        style={[
-          chipAnim,
-          {
-            marginTop: 10,
-            alignSelf: "flex-start",
-            borderRadius: 999,
-            borderWidth: 1,
-            paddingHorizontal: 13,
-            paddingVertical: 7,
-            backgroundColor: colors.bg,
-            borderColor: colors.border,
-          },
-        ]}
-      >
-        <Animated.Text
-          style={[labelFont, { fontSize: 12, color: colors.text }]}
-        >
-          {label}
-        </Animated.Text>
-      </Animated.View>
     </View>
   );
 }

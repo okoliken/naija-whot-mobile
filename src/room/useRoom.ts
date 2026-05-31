@@ -7,9 +7,9 @@ import {
   roomStateFromDoc,
   setupCreateRoom,
   setupJoinRoom,
-} from "./roomConnection";
-import type { RoomDoc, RoomState } from "./roomTypes";
-import { useAuthUid } from "./useAuthUid";
+} from "./connection";
+import type { RoomDoc, RoomState } from "./types";
+import { useAuthUid } from "@/src/platform/useAuthUid";
 
 type Args = {
   mode: "create" | "join" | null;

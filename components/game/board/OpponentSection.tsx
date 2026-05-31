@@ -3,7 +3,7 @@ import { OpponentStack } from "./OpponentStack";
 import { Section } from "./Section";
 import { useAppTheme } from "../../theme/ThemeContext";
 import { Font } from "../../theme/fonts";
-import { type Player } from "@/src/store/gameStore";
+import { type Player } from "@/src/game/gameStore";
 
 type OpponentSectionProps = {
   turn: Player;
@@ -14,15 +14,16 @@ type OpponentSectionProps = {
 
 export function OpponentSection({ turn, count, label = "CPU" }: OpponentSectionProps) {
   const theme = useAppTheme();
+  const isOpponentTurn = turn === "computer";
   return (
-    <Section>
+    <Section active={isOpponentTurn}>
       <View className="mb-3 flex-row items-baseline justify-between gap-3">
         <Text
           style={{
             fontFamily: Font.display.bold,
             fontSize: 17,
-            color: theme.textPrimary,
-            letterSpacing: 1,
+            color: isOpponentTurn ? theme.activeLabel : theme.textPrimary,
+            letterSpacing: 0.4,
           }}
         >
           {label}
@@ -34,7 +35,7 @@ export function OpponentSection({ turn, count, label = "CPU" }: OpponentSectionP
             color: theme.textMuted,
           }}
         >
-          {turn === "computer" ? "Thinking..." : "Waiting"}
+          {isOpponentTurn ? "Thinking..." : "Waiting"}
         </Text>
       </View>
       <OpponentStack count={count} />

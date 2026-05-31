@@ -6,9 +6,9 @@ import {
 import { useRef, type RefObject } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { BRAND, ON_BRAND } from "./theme/theme";
-import { FontStyle } from "./theme/fonts";
-import { useAppTheme } from "./theme/ThemeContext";
+import { FontStyle } from "../../theme/fonts";
+import { BRAND, ON_BRAND } from "../../theme/theme";
+import { useAppTheme } from "../../theme/ThemeContext";
 
 type Props = {
   onDismiss?: () => void;
@@ -129,7 +129,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
           The goal
         </Text>
         <View
-          className="mb-6 rounded-2xl px-4 py-4"
+          className="mb-6 rounded-2xl p-4"
           style={{
             backgroundColor: theme.surfaceAlt,
             borderWidth: 1,
@@ -144,9 +144,13 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
           >
             Be the first to empty your hand. Each turn, play one card that
             matches the top card by{" "}
-            <Text style={[FontStyle.ui.bold, { color: theme.textPrimary }]}>shape</Text>{" "}
+            <Text style={[FontStyle.ui.bold, { color: theme.textPrimary }]}>
+              shape
+            </Text>{" "}
             or{" "}
-            <Text style={[FontStyle.ui.bold, { color: theme.textPrimary }]}>number</Text>
+            <Text style={[FontStyle.ui.bold, { color: theme.textPrimary }]}>
+              number
+            </Text>
             . Can't play? Draw from the market.
           </Text>
         </View>
@@ -161,7 +165,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
           The five shapes
         </Text>
         <View
-          className="mb-6 rounded-2xl px-4 py-4"
+          className="mb-6 rounded-2xl p-4"
           style={{
             backgroundColor: theme.surfaceAlt,
             borderWidth: 1,
@@ -179,7 +183,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
             <Text style={[FontStyle.ui.bold, { color: theme.textPrimary }]}>
               Whot
             </Text>{" "}
-            card is a sixth, special suit — it's a wild.
+            card is a sixth, special suit: it's a wild.
           </Text>
         </View>
 
@@ -196,7 +200,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
           {SPECIAL_CARDS.map((card) => (
             <View
               key={card.value}
-              className="flex-row items-center gap-3 rounded-2xl px-3 py-3"
+              className="flex-row items-center gap-3 rounded-2xl p-3"
               style={{
                 backgroundColor: theme.surfaceAlt,
                 borderWidth: 1,
@@ -257,7 +261,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
           Tip
         </Text>
         <View
-          className="mb-8 rounded-2xl px-4 py-4"
+          className="mb-8 rounded-2xl p-4"
           style={{
             backgroundColor: theme.brandTint,
             borderWidth: 1,
@@ -270,7 +274,7 @@ export function HowToPlayModal({ onDismiss, ref }: Props) {
               { fontSize: 13, lineHeight: 19, color: theme.textSecondary },
             ]}
           >
-            Defend penalty cards by stacking the same value — answer a 2 with a
+            Defend penalty cards by stacking the same value: answer a 2 with a
             2, a 5 with a 5, a 14 with a 14. Otherwise you draw.
           </Text>
         </View>

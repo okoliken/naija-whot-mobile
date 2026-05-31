@@ -1,4 +1,4 @@
-import { canPlay, type Card } from "@/src/store/gameStore";
+import { canPlay, type Card } from "@/src/game/gameStore";
 
 export function isPlayableCard(
   card: Card,

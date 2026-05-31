@@ -1,5 +1,5 @@
-import { WhotEngine } from "@/services/whotEngine";
-import type { CardModel, CardShape } from "@/types/game";
+import { WhotEngine } from "./engine/whotEngine";
+import type { CardModel, CardShape } from "./types";
 import { SHAPES, SHAPE_LABELS } from "./constants";
 import { gameRuntime } from "./runtime";
 import type { Card, GameState, Player, RoundSnapshot, Shape } from "./types";

@@ -25,9 +25,14 @@ import Animated, {
 import { Font } from "../components/theme/fonts";
 import { BRAND, ON_BRAND, ON_BRAND_DIM } from "../components/theme/theme";
 import { useAppTheme } from "../components/theme/ThemeContext";
-import { getLastRoom, type LastRoom } from "@/src/lib/lastRoom";
-import { useRoom } from "@/src/lib/useRoom";
-import type { RoomState } from "@/src/lib/roomTypes";
+import {
+  clearLastRoom,
+  getLastRoom,
+  type LastRoom,
+} from "@/src/platform/storage/lastRoom";
+import { roomExists } from "@/src/room/connection";
+import { useRoom } from "@/src/room/useRoom";
+import type { RoomState } from "@/src/room/types";
 
 type Step = "pick" | "create" | "join";
 
@@ -114,8 +119,9 @@ export default function MultiplayerScreen() {
           <Text
             style={{
               fontFamily: Font.ui.semi,
-              fontSize: 11,
+              fontSize: 12,
               letterSpacing: 2.4,
+              textTransform: "uppercase",
               color: theme.textMuted,
             }}
           >
@@ -152,13 +158,24 @@ function PickStep({
   const theme = useAppTheme();
   const [lastRoom, setLastRoomState] = useState<LastRoom | null>(null);
 
-  // Load the most recently active room on mount so we can offer a one-tap
-  // rejoin if the user soft-left (back button or app backgrounded).
+  // Offer a one-tap rejoin if the user soft-left (back button or app
+  // backgrounded). The saved pointer can outlive the room — the host may have
+  // ended it, or it expired via TTL, while we were off the in-game screen
+  // where teardown normally clears it. So confirm the room still exists before
+  // showing the button, and drop a stale pointer when it's gone.
   useEffect(() => {
     let cancelled = false;
-    getLastRoom().then((r) => {
-      if (!cancelled) setLastRoomState(r);
-    });
+    (async () => {
+      const r = await getLastRoom();
+      if (cancelled || !r) return;
+      const exists = await roomExists(r.code);
+      if (cancelled) return;
+      if (exists === false) {
+        void clearLastRoom();
+        return;
+      }
+      setLastRoomState(r);
+    })();
     return () => {
       cancelled = true;
     };
@@ -222,6 +239,7 @@ function PickStep({
                 fontFamily: Font.ui.bold,
                 fontSize: 13,
                 letterSpacing: 2.4,
+                textTransform: "uppercase",
                 color: theme.textPrimary,
               }}
             >
@@ -256,6 +274,7 @@ function PickStep({
               fontFamily: Font.ui.bold,
               fontSize: 14,
               letterSpacing: 2.8,
+              textTransform: "uppercase",
               color: ON_BRAND,
             }}
           >
@@ -290,6 +309,7 @@ function PickStep({
               fontFamily: Font.ui.bold,
               fontSize: 14,
               letterSpacing: 2.8,
+              textTransform: "uppercase",
               color: theme.textPrimary,
             }}
           >
@@ -337,8 +357,9 @@ function CreateStep({ code }: { code: string }) {
         <Text
           style={{
             fontFamily: Font.ui.semi,
-            fontSize: 11,
+            fontSize: 12,
             letterSpacing: 2.4,
+            textTransform: "uppercase",
             color: theme.textMuted,
             marginBottom: 18,
           }}
@@ -370,6 +391,7 @@ function CreateStep({ code }: { code: string }) {
             fontFamily: Font.ui.semi,
             fontSize: 13,
             letterSpacing: 2.4,
+            textTransform: "uppercase",
             color: theme.textSecondary,
           }}
         >
@@ -431,8 +453,9 @@ function JoinStep({
           <Text
             style={{
               fontFamily: Font.ui.semi,
-              fontSize: 11,
+              fontSize: 12,
               letterSpacing: 2.4,
+              textTransform: "uppercase",
               color: theme.textMuted,
               marginBottom: 18,
             }}
@@ -464,6 +487,7 @@ function JoinStep({
               fontFamily: Font.ui.semi,
               fontSize: 13,
               letterSpacing: 2.4,
+              textTransform: "uppercase",
               color: theme.textSecondary,
             }}
           >
@@ -480,8 +504,9 @@ function JoinStep({
         <Text
           style={{
             fontFamily: Font.ui.semi,
-            fontSize: 11,
+            fontSize: 12,
             letterSpacing: 2.4,
+            textTransform: "uppercase",
             color: theme.textMuted,
             marginBottom: 18,
           }}
@@ -577,6 +602,7 @@ function JoinStep({
             fontFamily: Font.ui.bold,
             fontSize: 14,
             letterSpacing: 2.8,
+            textTransform: "uppercase",
             color: ready ? ON_BRAND : theme.textMuted,
           }}
         >

@@ -1,5 +1,5 @@
 import { Text, View } from "react-native";
-import { cn } from "@/src/lib/cn";
+import { cn } from "@/src/platform/cn";
 import { CardBack } from "../cards/CardBack";
 import { useAppTheme } from "../../theme/ThemeContext";
 import { Font } from "../../theme/fonts";

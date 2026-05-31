@@ -1,5 +1,5 @@
 import { Game } from 'whot'
-import type { CardModel, CardShape } from '../types/game'
+import type { CardModel, CardShape } from "../types";
 
 type EngineCard = {
   value: number

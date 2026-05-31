@@ -1,4 +1,4 @@
-import { SHAPE_LABELS, type Card } from "@/src/store/gameStore";
+import { SHAPE_LABELS, type Card } from "@/src/game/gameStore";
 
 export const SHAPE_GLYPH: Record<string, string> = {
   circle: "●",
@@ -14,7 +14,7 @@ export const CENTER_GLYPH_CLASS: Record<Card["shape"], string> = {
   triangle: "text-[50px]",
   cross: "text-[42px]",
   star: "text-[46px]",
-  square: "text-[54px]",
+  square: "text-[128px]",
   whot: "text-[40px]",
 };
 
@@ -23,7 +23,7 @@ export const CORNER_GLYPH_CLASS: Record<Card["shape"], string> = {
   triangle: "text-[12px]",
   cross: "text-[11px]",
   star: "text-[12px]",
-  square: "text-[16px]",
+  square: "text-[32px]",
   whot: "text-[11px]",
 };
 

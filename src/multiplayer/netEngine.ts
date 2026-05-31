@@ -1,6 +1,6 @@
-import type { Seat } from "@/src/lib/roomTypes";
-import { SHAPE_LABELS } from "@/src/store/game/constants";
-import type { Card, Shape } from "@/src/store/game/types";
+import type { Seat } from "@/src/room/types";
+import { SHAPE_LABELS } from "@/src/game/constants";
+import type { Card, Shape } from "@/src/game/types";
 
 import type { NetGameState, RequestedShape } from "./netTypes";
 

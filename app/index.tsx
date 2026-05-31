@@ -1,5 +1,5 @@
-import { hasSeenIntro, markIntroSeen } from "@/src/lib/firstLaunch";
-import { useGameStore } from "@/src/store/gameStore";
+import { hasSeenIntro, markIntroSeen } from "@/src/platform/storage/firstLaunch";
+import { useGameStore } from "@/src/game/gameStore";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
@@ -10,7 +10,7 @@ import {
 } from "react-native-safe-area-context";
 
 import { CardFront } from "../components/game/cards/CardFront";
-import { HowToPlayModal } from "../components/HowToPlayModal";
+import { HowToPlayModal } from "../components/game/modals/HowToPlayModal";
 import { Font } from "../components/theme/fonts";
 import { BRAND, ON_BRAND, ON_BRAND_DIM } from "../components/theme/theme";
 import { useAppTheme } from "../components/theme/ThemeContext";
@@ -27,6 +27,8 @@ export default function HomeScreen() {
       if (cancelled || seen) return;
       howToPlayRef.current?.present();
     });
+
+    console.log("mode", theme);
     return () => {
       cancelled = true;
     };
@@ -86,6 +88,7 @@ export default function HomeScreen() {
                   fontFamily: Font.display.bold,
                   fontSize: 22,
                   letterSpacing: 1.6,
+                  textTransform: "uppercase",
                   color: ON_BRAND,
                 }}
               >
@@ -108,7 +111,7 @@ export default function HomeScreen() {
               fontFamily: Font.display.bold,
               fontSize: 40,
               lineHeight: 46,
-              letterSpacing: 2,
+              letterSpacing: 0.5,
               color: theme.textPrimary,
               textAlign: "center",
             }}
@@ -147,6 +150,7 @@ export default function HomeScreen() {
                 fontFamily: Font.ui.bold,
                 fontSize: 14,
                 letterSpacing: 2.8,
+                textTransform: "uppercase",
                 color: ON_BRAND,
               }}
             >
@@ -183,6 +187,7 @@ export default function HomeScreen() {
                 fontFamily: Font.ui.bold,
                 fontSize: 14,
                 letterSpacing: 2.8,
+                textTransform: "uppercase",
                 color: theme.textPrimary,
               }}
             >
@@ -214,6 +219,7 @@ export default function HomeScreen() {
                 fontFamily: Font.ui.semi,
                 fontSize: 12,
                 letterSpacing: 2.4,
+                textTransform: "uppercase",
                 color: theme.textSecondary,
               }}
             >

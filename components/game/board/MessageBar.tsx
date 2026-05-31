@@ -15,11 +15,7 @@ export function MessageBar({ message }: Props) {
       style={{
         borderColor: theme.border,
         backgroundColor: theme.surface,
-        shadowColor: theme.messageShadow,
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: theme.messageShadowOpacity,
-        shadowRadius: 8,
-        elevation: 8,
+        boxShadow: theme.messageBoxShadow,
       }}
     >
       <Text

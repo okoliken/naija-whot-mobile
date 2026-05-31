@@ -1,4 +1,4 @@
-import { type Card } from "@/src/store/gameStore";
+import { type Card } from "@/src/game/gameStore";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { CardFront } from "../cards/CardFront";
 import { Section } from "./Section";
@@ -27,14 +27,14 @@ export function PlayerSection({
 }: PlayerSectionProps) {
   const theme = useAppTheme();
   return (
-    <Section>
+    <Section active={isHumanTurn}>
       <View className="mb-3 flex-row items-baseline justify-between gap-3">
         <Text
           style={{
             fontFamily: Font.display.bold,
             fontSize: 17,
-            color: theme.textPrimary,
-            letterSpacing: 0.9,
+            color: isHumanTurn ? theme.activeLabel : theme.textPrimary,
+            letterSpacing: 0.4,
           }}
         >
           Your hand

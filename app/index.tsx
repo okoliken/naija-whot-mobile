@@ -1,235 +1,297 @@
-import { hasSeenIntro, markIntroSeen } from "@/src/platform/storage/firstLaunch";
-import { useGameStore } from "@/src/game/gameStore";
+import { SHAPE_LABELS, gameShapes, useGameStore } from "@/src/game/gameStore";
+import {
+  hasSeenIntro,
+  markIntroSeen,
+} from "@/src/platform/storage/firstLaunch";
+import { recordRound } from "@/src/platform/storage/stats";
+import type { Seat } from "@/src/room/types";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { router } from "expo-router";
-import { useEffect, useRef } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { View } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { useShallow } from "zustand/react/shallow";
+import type { Card, Player } from "@/src/game/gameStore";
 
-import { CardFront } from "../components/game/cards/CardFront";
+import { HeaderBar } from "../components/game/board/HeaderBar";
+import { OpponentSection } from "../components/game/board/OpponentSection";
+import { PlayerSection } from "../components/game/board/PlayerSection";
+import { TableSection } from "../components/game/board/TableSection";
+import { TableSurface } from "../components/game/board/TableSurface";
+import { CardFlyOverlay } from "../components/game/cards/CardFlyOverlay";
+import { ControlCenterModal } from "../components/game/modals/ControlCenterModal";
 import { HowToPlayModal } from "../components/game/modals/HowToPlayModal";
-import { Font } from "../components/theme/fonts";
-import { BRAND, ON_BRAND, ON_BRAND_DIM } from "../components/theme/theme";
-import { useAppTheme } from "../components/theme/ThemeContext";
+import { MenuSheet } from "../components/game/modals/MenuSheet";
+import { ShapePickerModal } from "../components/game/modals/ShapePickerModal";
+import { WinModal, type RoundResult } from "../components/game/modals/WinModal";
+import { MultiplayerBoard } from "../components/game/MultiplayerBoard";
 
+/** What the one table screen is currently hosting. */
+type Session =
+  | { kind: "cpu" }
+  | { kind: "net"; code: string; seat: Seat };
+
+/**
+ * The whole app is this one table. A CPU game is always dealt behind the
+ * menu sheet; joining a room crossfades the board into the networked game
+ * in place — no navigation, so screens can never stack.
+ */
 export default function HomeScreen() {
-  const theme = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const {
+    deck,
+    topCard,
+    humanHand,
+    computerHand,
+    turn,
+    pendingPick,
+    skipNextPlayer,
+    requestedShape,
+    awaitingShapeChoice,
+    aiTurnTick,
+    message,
+    gameStarted,
+    winner,
+    difficulty,
+  } = useGameStore(
+    useShallow((s) => ({
+      deck: s.deck,
+      topCard: s.topCard,
+      humanHand: s.humanHand,
+      computerHand: s.computerHand,
+      turn: s.turn,
+      pendingPick: s.pendingPick,
+      skipNextPlayer: s.skipNextPlayer,
+      requestedShape: s.requestedShape,
+      awaitingShapeChoice: s.awaitingShapeChoice,
+      aiTurnTick: s.aiTurnTick,
+      message: s.message,
+      gameStarted: s.gameStarted,
+      winner: s.winner,
+      difficulty: s.difficulty,
+    })),
+  );
   const startGame = useGameStore((s) => s.startGame);
-  const howToPlayRef = useRef<BottomSheetModal>(null);
+  const drawHumanCard = useGameStore((s) => s.drawHumanCard);
+  const playHumanCard = useGameStore((s) => s.playHumanCard);
+  const chooseShape = useGameStore((s) => s.chooseShape);
+  const runComputerTurn = useGameStore((s) => s.runComputerTurn);
+  const setDifficulty = useGameStore((s) => s.setDifficulty);
 
+  const [session, setSession] = useState<Session>({ kind: "cpu" });
+  const isCpu = session.kind === "cpu";
+
+  const controlCenterRef = useRef<BottomSheetModal>(null);
+  const menuRef = useRef<BottomSheetModal>(null);
+  const howToPlayRef = useRef<BottomSheetModal>(null);
+  // True while the how-to-play sheet is playing its first-launch role, so
+  // its dismissal can hand over to the menu. Help taps don't set it.
+  const introFlowRef = useRef(false);
+
+  // Deal a game immediately so the table behind the menu is real.
+  useEffect(() => {
+    if (!useGameStore.getState().gameStarted) startGame();
+  }, [startGame]);
+
+  // Front door: first launch leads with the rules, then the menu.
+  // Every later launch goes straight to the menu.
   useEffect(() => {
     let cancelled = false;
     hasSeenIntro().then((seen) => {
-      if (cancelled || seen) return;
-      howToPlayRef.current?.present();
+      if (cancelled) return;
+      if (seen) {
+        menuRef.current?.present();
+      } else {
+        introFlowRef.current = true;
+        howToPlayRef.current?.present();
+      }
     });
-
-    console.log("mode", theme);
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const handleIntroDismiss = () => {
+  const handleHowToPlayDismiss = () => {
     markIntroSeen();
+    if (introFlowRef.current) {
+      introFlowRef.current = false;
+      menuRef.current?.present();
+    }
   };
 
-  const handlePlayCpu = () => {
+  const handleStartMultiplayer = (code: string, seat: Seat) => {
+    setSession({ kind: "net", code, seat });
+  };
+
+  // Game history
+  const roundCountRef = useRef(1);
+  const [history, setHistory] = useState<RoundResult[]>([]);
+  const prevWinner = useRef<Player | null>(null);
+
+  useEffect(() => {
+    if (winner && winner !== prevWinner.current) {
+      prevWinner.current = winner;
+      void recordRound(winner === "human" ? "win" : "loss");
+      setHistory((h) => [
+        ...h,
+        {
+          round: roundCountRef.current,
+          winner,
+          humanCards: humanHand.length,
+          computerCards: computerHand.length,
+        },
+      ]);
+    }
+    if (!winner) prevWinner.current = null;
+  }, [winner, humanHand.length, computerHand.length]);
+
+  // Card fly animation
+  const isFirstCard = useRef(true);
+  const prevTopCardId = useRef<string | null>(null);
+  const [flyCard, setFlyCard] = useState<Card | null>(null);
+  const [flyOrigin, setFlyOrigin] = useState<"human" | "computer">("human");
+
+  useEffect(() => {
+    if (!topCard || topCard.id === prevTopCardId.current) return;
+    prevTopCardId.current = topCard.id;
+    if (isFirstCard.current) {
+      isFirstCard.current = false;
+      return;
+    }
+    // Use the recorded actor, not `turn` — Hold On (1) keeps the turn with
+    // whoever played, so inferring from the next turn flips the direction.
+    setFlyOrigin(useGameStore.getState().lastActor ?? "human");
+    setFlyCard(topCard);
+  }, [topCard]);
+
+  const handleRestart = () => {
+    isFirstCard.current = true;
+    prevTopCardId.current = null;
+    setFlyCard(null);
+    roundCountRef.current += 1;
     startGame();
-    router.push("/game");
   };
 
-  const handlePlayPvp = () => {
-    router.push("/multiplayer");
+  const handleLeaveMultiplayer = () => {
+    setSession({ kind: "cpu" });
+    // The solo table resumes behind the menu. If its last round had ended,
+    // the winner flag would pop the solo win sheet over the menu the moment
+    // we land — a stale result from before multiplayer. Deal fresh instead.
+    if (useGameStore.getState().winner) handleRestart();
+    menuRef.current?.present();
   };
 
-  const handleHowToPlay = () => {
-    howToPlayRef.current?.present();
-  };
+  // The CPU pauses while the table hosts a networked game.
+  useEffect(() => {
+    if (
+      !isCpu ||
+      turn !== "computer" ||
+      !gameStarted ||
+      winner ||
+      awaitingShapeChoice
+    )
+      return;
+    const timer = setTimeout(runComputerTurn, 700);
+    return () => clearTimeout(timer);
+  }, [
+    aiTurnTick,
+    awaitingShapeChoice,
+    gameStarted,
+    isCpu,
+    runComputerTurn,
+    turn,
+    winner,
+  ]);
+
+  const needLabel = requestedShape ? SHAPE_LABELS[requestedShape] : "Any";
+  const skipsLabel = skipNextPlayer ? "1" : "0";
+  const isHumanTurn = turn === "human" && !winner && !awaitingShapeChoice;
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView
-      edges={["top", "left", "right"]}
-      style={{ flex: 1, backgroundColor: theme.appBg }}
-    >
-      <View
-        style={{
-          flex: 1,
-          paddingHorizontal: 24,
-          paddingTop: 24,
-          paddingBottom: insets.bottom + 24,
-          justifyContent: "space-between",
-        }}
-      >
-        {/* Brand */}
-        <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+    <TableSurface>
+      {isCpu ? (
+        <Animated.View
+          key="cpu"
+          entering={FadeIn.duration(450)}
+          exiting={FadeOut.duration(250)}
+          style={{ flex: 1 }}
         >
-          <View className="flex-row gap-0.5">
-            <View
-              style={{
-                width: 110,
-                height: 150,
-                borderRadius: 12,
-                backgroundColor: BRAND,
-                alignItems: "center",
-                justifyContent: "center",
-                transform: [{ rotate: "-6deg" }],
-                marginBottom: 28,
-                ...theme.panelLift,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: Font.display.bold,
-                  fontSize: 22,
-                  letterSpacing: 1.6,
-                  textTransform: "uppercase",
-                  color: ON_BRAND,
-                }}
-              >
-                WHOT
-              </Text>
+          <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1 }}>
+            <View style={{ flex: 1, paddingBottom: insets.bottom + 4 }}>
+              <HeaderBar
+                onRestart={handleRestart}
+                onSettings={() => controlCenterRef.current?.present()}
+                onMenu={() => menuRef.current?.present()}
+                onHelp={() => howToPlayRef.current?.present()}
+              />
+
+              <OpponentSection turn={turn} count={computerHand.length} />
+
+              <TableSection
+                deckCount={deck.length}
+                topCard={topCard}
+                isHumanTurn={isHumanTurn}
+                needLabel={needLabel}
+                pendingPick={pendingPick}
+                skipsLabel={skipsLabel}
+                onDraw={drawHumanCard}
+              />
+
+              <PlayerSection
+                humanHand={humanHand}
+                topCard={topCard}
+                requestedShape={requestedShape}
+                pendingPick={pendingPick}
+                isHumanTurn={isHumanTurn}
+                message={awaitingShapeChoice ? "" : message}
+                onPlayCard={playHumanCard}
+              />
             </View>
-            <View
-              style={{
-                borderRadius: 12,
-                transform: [{ rotate: "6deg" }],
-                marginBottom: 28,
-                ...theme.panelLift,
-              }}
-            >
-              <CardFront card={{ id: "sample", shape: "star", value: 4 }} />
-            </View>
-          </View>
-          <Text
-            style={{
-              fontFamily: Font.display.bold,
-              fontSize: 40,
-              lineHeight: 46,
-              letterSpacing: 0.5,
-              color: theme.textPrimary,
-              textAlign: "center",
-            }}
-          >
-            Naija Whot
-          </Text>
-          <Text
-            style={{
-              fontFamily: Font.ui.regular,
-              marginTop: 10,
-              fontSize: 13,
-              color: theme.textMuted,
-              textAlign: "center",
-            }}
-          >
-            Single deck. No stress.
-          </Text>
-        </View>
+          </SafeAreaView>
 
-        {/* CTAs */}
-        <View>
-          <Pressable
-            onPress={handlePlayCpu}
-            style={({ pressed }) => ({
-              alignItems: "center",
-              borderRadius: 18,
-              paddingVertical: 20,
-              backgroundColor: BRAND,
-              opacity: pressed ? 0.9 : 1,
-              ...theme.panelLift,
-            })}
-            className="border border-dashed border-white/45 p-1.5"
-          >
-            <Text
-              style={{
-                fontFamily: Font.ui.bold,
-                fontSize: 14,
-                letterSpacing: 2.8,
-                textTransform: "uppercase",
-                color: ON_BRAND,
-              }}
-            >
-              PLAY VS CPU
-            </Text>
-            <Text
-              style={{
-                fontFamily: Font.ui.regular,
-                marginTop: 6,
-                fontSize: 12,
-                color: ON_BRAND_DIM,
-              }}
-            >
-              Solo · against the house
-            </Text>
-          </Pressable>
+          <CardFlyOverlay card={flyCard} origin={flyOrigin} />
+        </Animated.View>
+      ) : (
+        <Animated.View
+          key={`net-${session.code}`}
+          entering={FadeIn.duration(450)}
+          exiting={FadeOut.duration(250)}
+          style={{ flex: 1 }}
+        >
+          <MultiplayerBoard
+            code={session.code}
+            seat={session.seat}
+            onLeave={handleLeaveMultiplayer}
+          />
+        </Animated.View>
+      )}
 
-          <Pressable
-            onPress={handlePlayPvp}
-            style={({ pressed }) => ({
-              alignItems: "center",
-              borderRadius: 18,
-              paddingVertical: 20,
-              marginTop: 12,
-              backgroundColor: theme.surfaceAlt,
-              borderWidth: 1,
-              borderColor: theme.border,
-              opacity: pressed ? 0.7 : 1,
-            })}
-            className="border border-dashed border-white/45 p-1.5"
-          >
-            <Text
-              style={{
-                fontFamily: Font.ui.bold,
-                fontSize: 14,
-                letterSpacing: 2.8,
-                textTransform: "uppercase",
-                color: theme.textPrimary,
-              }}
-            >
-              PLAY VS PLAYER
-            </Text>
-            <Text
-              style={{
-                fontFamily: Font.ui.regular,
-                marginTop: 6,
-                fontSize: 12,
-                color: theme.textMuted,
-              }}
-            >
-              Friend code · same room
-            </Text>
-          </Pressable>
+      {isCpu && awaitingShapeChoice ? (
+        <ShapePickerModal shapes={gameShapes} onChoose={chooseShape} />
+      ) : null}
 
-          <Pressable
-            onPress={handleHowToPlay}
-            style={({ pressed }) => ({
-              alignItems: "center",
-              paddingVertical: 16,
-              marginTop: 12,
-              opacity: pressed ? 0.6 : 1,
-            })}
-          >
-            <Text
-              style={{
-                fontFamily: Font.ui.semi,
-                fontSize: 12,
-                letterSpacing: 2.4,
-                textTransform: "uppercase",
-                color: theme.textSecondary,
-              }}
-            >
-              HOW TO PLAY
-            </Text>
-          </Pressable>
-        </View>
-      </View>
+      {isCpu && winner ? (
+        <WinModal winner={winner} history={history} onRestart={handleRestart} />
+      ) : null}
 
-      <HowToPlayModal ref={howToPlayRef} onDismiss={handleIntroDismiss} />
-    </SafeAreaView>
+      <MenuSheet
+        ref={menuRef}
+        onPlayCpu={() => {}}
+        onStartMultiplayer={handleStartMultiplayer}
+        onHowToPlay={() => howToPlayRef.current?.present()}
+      />
+
+      <HowToPlayModal ref={howToPlayRef} onDismiss={handleHowToPlayDismiss} />
+
+      <ControlCenterModal
+        ref={controlCenterRef}
+        difficulty={difficulty}
+        onDifficultyChange={setDifficulty}
+        history={history}
+      />
+    </TableSurface>
   );
 }

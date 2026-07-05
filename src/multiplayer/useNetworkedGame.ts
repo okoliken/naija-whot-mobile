@@ -7,7 +7,7 @@ import {
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 
 import { db } from "@/src/platform/firebase";
@@ -80,6 +80,12 @@ export type NetworkedGameView = {
 export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
   const uid = useAuthUid();
   const [state, setState] = useState<NetGameState | null>(null);
+  // Highest `tick` we've already rendered (optimistic or confirmed).
+  // Snapshots can echo a pre-move state after we've optimistically advanced
+  // past it — e.g. play Crown, choose a shape fast, then the play's echo
+  // arrives and re-opens the shape picker. `tick` is monotonic within a
+  // round, so anything older than what we've shown gets dropped.
+  const lastTickRef = useRef(0);
   const [lastError, setLastError] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [roomExists, setRoomExists] = useState<boolean | null>(null);
@@ -153,6 +159,9 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
         const parsed = parseNetGameState(snap.data());
         if (parsed) {
           setConnectionError(null);
+          // tick 0 is a fresh deal (new round) — always accept those.
+          if (parsed.tick !== 0 && parsed.tick < lastTickRef.current) return;
+          lastTickRef.current = parsed.tick;
           setState(parsed);
         } else {
           setState(null);
@@ -212,13 +221,15 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
     setLastError(null);
 
     // Optimistic update: apply the transition to our current local view
-    // immediately so the UI moves in sync with the tap. If the server-side
-    // transaction fails, the snapshot listener will overwrite us with the
-    // authoritative state on the next tick — so no manual rollback needed.
+    // immediately so the UI moves in sync with the tap, and advance the
+    // tick guard so late echoes of the previous state can't flicker us
+    // backwards while the write is in flight.
     setState((prev) => {
       if (!prev) return prev;
       const local = compute(prev);
-      return isError(local) ? prev : local;
+      if (isError(local)) return prev;
+      lastTickRef.current = local.tick;
+      return local;
     });
 
     const stateRef = doc(db, "rooms", code, "state", "current");
@@ -234,6 +245,20 @@ export function useNetworkedGame({ code, seat }: Args): NetworkedGameView {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Move failed.";
       setLastError(message);
+      // The write was rejected, so our optimistic state (and tick) are
+      // wrong. Drop the guard and re-sync from the server — its state has
+      // an older tick and would otherwise be filtered out.
+      lastTickRef.current = 0;
+      try {
+        const snap = await getDoc(stateRef);
+        const parsed = snap.exists() ? parseNetGameState(snap.data()) : null;
+        if (parsed) {
+          lastTickRef.current = parsed.tick;
+          setState(parsed);
+        }
+      } catch {
+        // Listener will resolve it on the next server snapshot.
+      }
     }
   };
 

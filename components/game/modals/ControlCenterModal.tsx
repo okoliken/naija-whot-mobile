@@ -4,19 +4,14 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
-import { useRef, type RefObject } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import { Pressable, Switch, Text, View } from "react-native";
 import { BRAND, ON_BRAND, ON_BRAND_DIM } from "../../theme/theme";
 import { useAppTheme, useThemeMode } from "../../theme/ThemeContext";
-import { Font, FontStyle } from "../../theme/fonts";
+import { FontStyle } from "../../theme/fonts";
 import type { RoundResult } from "./WinModal";
 import { DIFFICULTIES, DIFFICULTY_DESC } from "@/src/game/constants";
-import type { ThemeMode } from "@/src/platform/storage/themePreference";
-
-const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
+import { loadStats, type AllTimeStats } from "@/src/platform/storage/stats";
 
 type Props = {
   /** Omit in multiplayer — the difficulty selector hides when no value is passed. */
@@ -39,6 +34,19 @@ export function ControlCenterModal({
   const { mode, setMode } = useThemeMode();
   const internalRef = useRef<BottomSheetModal>(null);
   const sheetRef = ref ?? internalRef;
+
+  // All-time tallies. Reload when the session history grows so the sheet
+  // stays fresh after each round without a focus listener.
+  const [allTime, setAllTime] = useState<AllTimeStats | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    loadStats().then((s) => {
+      if (!cancelled) setAllTime(s);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [history.length]);
 
   const renderBackdrop = (
     props: React.ComponentProps<typeof BottomSheetBackdrop>,
@@ -91,7 +99,17 @@ export function ControlCenterModal({
           Control Centre
         </Text>
 
-        {/* Win/loss summary */}
+        {/* Session win/loss summary */}
+        {history.length > 0 && (
+          <Text
+            style={[
+              FontStyle.ui.semi,
+              { marginBottom: 12, fontSize: 13, color: theme.textSecondary },
+            ]}
+          >
+            This session
+          </Text>
+        )}
         {history.length > 0 && (
           <View
             className="mb-6 flex-row items-center justify-around rounded-2xl py-4"
@@ -146,6 +164,67 @@ export function ControlCenterModal({
           </View>
         )}
 
+        {/* All-time record */}
+        {allTime && allTime.wins + allTime.losses > 0 ? (
+          <>
+            <Text
+              style={[
+                FontStyle.ui.semi,
+                { marginBottom: 12, fontSize: 13, color: theme.textSecondary },
+              ]}
+            >
+              All time
+            </Text>
+            <View
+              className="mb-8 flex-row items-center justify-around rounded-2xl py-4"
+              style={{
+                backgroundColor: theme.surfaceAlt,
+                borderWidth: 1,
+                borderColor: theme.border,
+              }}
+            >
+              <View className="items-center gap-1">
+                <Text
+                  style={[FontStyle.ui.bold, { fontSize: 24, color: theme.success }]}
+                >
+                  {allTime.wins}
+                </Text>
+                <Text
+                  style={[FontStyle.ui.regular, { fontSize: 11, color: theme.textMuted }]}
+                >
+                  Wins
+                </Text>
+              </View>
+              <View className="h-8 w-px" style={{ backgroundColor: theme.border }} />
+              <View className="items-center gap-1">
+                <Text
+                  style={[FontStyle.ui.bold, { fontSize: 24, color: theme.textPrimary }]}
+                >
+                  {allTime.wins + allTime.losses}
+                </Text>
+                <Text
+                  style={[FontStyle.ui.regular, { fontSize: 11, color: theme.textMuted }]}
+                >
+                  Rounds
+                </Text>
+              </View>
+              <View className="h-8 w-px" style={{ backgroundColor: theme.border }} />
+              <View className="items-center gap-1">
+                <Text
+                  style={[FontStyle.ui.bold, { fontSize: 24, color: theme.textSecondary }]}
+                >
+                  {allTime.losses}
+                </Text>
+                <Text
+                  style={[FontStyle.ui.regular, { fontSize: 11, color: theme.textMuted }]}
+                >
+                  Losses
+                </Text>
+              </View>
+            </View>
+          </>
+        ) : null}
+
         {/* Appearance */}
         <Text
           style={[
@@ -160,40 +239,37 @@ export function ControlCenterModal({
           Appearance
         </Text>
         <View
-          className="mb-8 flex-row rounded-xl p-1"
+          className="mb-8 flex-row items-center justify-between rounded-xl px-4 py-3.5"
           style={{
             backgroundColor: theme.surfaceAlt,
             borderWidth: 1,
             borderColor: theme.border,
           }}
         >
-          {THEME_OPTIONS.map((opt) => {
-            const active = opt.value === mode;
-            return (
-              <Pressable
-                key={opt.value}
-                onPress={() => setMode(opt.value)}
-                className="flex-1 items-center justify-center rounded-lg py-2.5"
-                style={{
-                  backgroundColor: active ? theme.surface : "transparent",
-                  ...(active ? theme.panelLiftSubtle : null),
-                }}
-              >
-                <Text
-                  style={[
-                    FontStyle.ui.semi,
-                    {
-                      fontSize: 12,
-                      letterSpacing: 1.2,
-                      color: active ? theme.textPrimary : theme.textMuted,
-                    },
-                  ]}
-                >
-                  {opt.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+          <View style={{ flexShrink: 1, paddingRight: 12 }}>
+            <Text
+              style={[
+                FontStyle.ui.semi,
+                { fontSize: 14, color: theme.textPrimary },
+              ]}
+            >
+              Dark mode
+            </Text>
+            <Text
+              style={[
+                FontStyle.ui.regular,
+                { marginTop: 3, fontSize: 12, color: theme.textMuted },
+              ]}
+            >
+              Deep felt table and warm dark surfaces
+            </Text>
+          </View>
+          <Switch
+            value={mode === "dark"}
+            onValueChange={(on) => setMode(on ? "dark" : "light")}
+            trackColor={{ true: BRAND }}
+            ios_backgroundColor={theme.border}
+          />
         </View>
 
         {/* Difficulty (single-player only) */}

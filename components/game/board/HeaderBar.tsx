@@ -1,68 +1,80 @@
-import { Text, View } from "react-native";
+import { Text, View, useWindowDimensions } from "react-native";
 import { IconButton } from "../../ui/IconButton";
-import { useAppTheme } from "../../theme/ThemeContext";
 import { Font } from "../../theme/fonts";
+import { useAppTheme } from "../../theme/ThemeContext";
 
 type HeaderBarProps = {
   onRestart: () => void;
   onSettings: () => void;
-  onBack: () => void;
+  /** Stacked screens (multiplayer): shows a back arrow. */
+  onBack?: () => void;
+  /** Root game screen: shows a menu icon instead of back. */
+  onMenu?: () => void;
+  /** Opens the how-to-play rules. */
+  onHelp?: () => void;
   /** Multiplayer/host only: closes the room for both players. */
   onEndGame?: () => void;
 };
 
+/** Room the true-centered wordmark needs (text ~85pt + breathing space). */
+const WORDMARK_CLEARANCE = 116;
+
+/** Slim, transparent control strip along the top of the table. */
 export function HeaderBar({
   onRestart,
   onSettings,
   onBack,
+  onMenu,
+  onHelp,
   onEndGame,
 }: HeaderBarProps) {
-  const theme = useAppTheme();
-  const wordmarkFont = { fontFamily: Font.display.bold } as const;
-  const subtitleFont = { fontFamily: Font.ui.regular } as const;
+  const { table } = useAppTheme();
+  const { width } = useWindowDimensions();
+
+  // The wordmark sits at the true screen centre, so it collides with the
+  // wider icon cluster on narrow phones (e.g. multiplayer host: 4 icons).
+  // Show it only when the middle is actually clear.
+  const rightCount = 2 + (onHelp ? 1 : 0) + (onEndGame ? 1 : 0);
+  const rightWidth = rightCount * 40 + (rightCount - 1) * 10 + 16;
+  const clusterWidth = Math.max(56, rightWidth);
+  const showWordmark = width - 2 * clusterWidth >= WORDMARK_CLEARANCE;
 
   return (
-    <View
-      className="rounded-3xl border px-4 py-3.5"
-      style={{
-        borderColor: theme.border,
-        backgroundColor: theme.headerSurface,
-        ...theme.panelLift,
-      }}
-    >
-      <View className="flex-row items-center justify-between gap-3">
-        <View className="min-w-0 flex-1 pr-2">
+    <View className="flex-row items-center justify-between px-4 pt-1">
+      {showWordmark ? (
+        <View
+          pointerEvents="none"
+          className="absolute inset-x-0 items-center justify-center"
+          style={{ top: 0, bottom: 0 }}
+        >
           <Text
-            style={[
-              wordmarkFont,
-              { fontSize: 18, color: theme.textPrimary, letterSpacing: 1.2 },
-            ]}
-            numberOfLines={1}
+            style={{
+              fontFamily: Font.display.bold,
+              fontSize: 17,
+              letterSpacing: 3.5,
+              color: table.textDim,
+            }}
           >
-            Naija Whot
-          </Text>
-          <Text
-            style={[
-              subtitleFont,
-              {
-                marginTop: 2,
-                fontSize: 10,
-                color: theme.textMuted,
-                letterSpacing: 0.6,
-              },
-            ]}
-            numberOfLines={1}
-          >
-            Single deck · no stress
+            WHOT
           </Text>
         </View>
+      ) : null}
 
-        <View className="flex-row gap-2">
-          <IconButton name="arrow-left" onPress={onBack} />
-          <IconButton name="settings" onPress={onSettings} />
-          <IconButton name="rotate-cw" onPress={onRestart} />
-          {onEndGame ? <IconButton name="x-circle" onPress={onEndGame} /> : null}
-        </View>
+      {onMenu ? (
+        <IconButton name="menu" onPress={onMenu} tone="felt" />
+      ) : (
+        <IconButton name="arrow-left" onPress={onBack} tone="felt" />
+      )}
+
+      <View className="flex-row gap-2.5">
+        {onHelp ? (
+          <IconButton name="help-circle" onPress={onHelp} tone="felt" />
+        ) : null}
+        <IconButton name="settings" onPress={onSettings} tone="felt" />
+        <IconButton name="rotate-cw" onPress={onRestart} tone="felt" />
+        {onEndGame ? (
+          <IconButton name="x-circle" onPress={onEndGame} tone="felt" />
+        ) : null}
       </View>
     </View>
   );

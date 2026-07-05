@@ -45,6 +45,9 @@ export type GameState = {
   winner: Player | null;
   statusLine: string;
   aiTurnTick: number;
+  /** Who played the current top card. Drives the card-fly direction —
+   *  can't be inferred from `turn`, since Hold On keeps the turn. */
+  lastActor: Player | null;
   difficulty: Difficulty;
   startGame: () => void;
   drawHumanCard: () => void;
@@ -70,4 +73,5 @@ export type RoundSnapshot = Pick<
   | "winner"
   | "statusLine"
   | "aiTurnTick"
+  | "lastActor"
 >;

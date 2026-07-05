@@ -31,6 +31,68 @@ export function inkAlpha(alpha: number): string {
   return `rgba(97, 7, 0, ${alpha})`;
 }
 
+/* ---------- Card-table tokens ----------
+ * The in-game playing surface. Follows the app theme: deep oxblood felt
+ * in dark mode, warm parchment in light mode, with matching ink/accents
+ * so the Light/Dark toggle restyles the whole app consistently.
+ */
+export type TableTheme = {
+  /** Table surface. */
+  bg: string;
+  /** Edge-vignette colour (used by an inset shadow). */
+  vignette: string;
+  /** Primary text on the table. */
+  text: string;
+  /** Secondary text on the table. */
+  textDim: string;
+  /** Tertiary text on the table. */
+  textFaint: string;
+  /** Ghost control fill (icon buttons) on the table. */
+  ghostBg: string;
+  /** Quiet status-chip fill. */
+  chipBg: string;
+  /** Quiet status-chip border. */
+  chipBorder: string;
+  /** Warning-chip border. */
+  chipWarnBorder: string;
+  /** Warning-chip text. */
+  chipWarnText: string;
+  /** "Your turn" label + active-seat dot. */
+  turnAccent: string;
+  /** Drop shadow for cards resting on the table. */
+  cardShadow: string;
+};
+
+export const darkTable: TableTheme = {
+  bg: "#360C07",
+  vignette: "rgba(0,0,0,0.55)",
+  text: "#F2E5D4",
+  textDim: "rgba(242,229,212,0.62)",
+  textFaint: "rgba(242,229,212,0.38)",
+  ghostBg: "rgba(255,255,255,0.07)",
+  chipBg: "rgba(0,0,0,0.30)",
+  chipBorder: "rgba(242,229,212,0.18)",
+  chipWarnBorder: "rgba(245,197,24,0.55)",
+  chipWarnText: ACCENT_GOLD,
+  turnAccent: ACCENT_GOLD,
+  cardShadow: "0 6px 14px rgba(0,0,0,0.42)",
+};
+
+export const lightTable: TableTheme = {
+  bg: "#EFE3D3",
+  vignette: "rgba(97,7,0,0.10)",
+  text: "#43201A",
+  textDim: "rgba(67,32,26,0.68)",
+  textFaint: "rgba(67,32,26,0.45)",
+  ghostBg: "rgba(97,7,0,0.07)",
+  chipBg: "rgba(255,255,255,0.55)",
+  chipBorder: "rgba(97,7,0,0.25)",
+  chipWarnBorder: "rgba(138,100,0,0.55)",
+  chipWarnText: "#8A6400",
+  turnAccent: "#8A6400",
+  cardShadow: "0 5px 12px rgba(60,20,10,0.25)",
+};
+
 export type ChipColors = { bg: string; border: string; text: string };
 
 /** iOS shadow + Android elevation for lifted panels */
@@ -75,26 +137,28 @@ export type AppTheme = {
   messageBoxShadow: string;
   panelLift: PanelLift;
   panelLiftSubtle: PanelLift;
+  /** In-game playing-surface palette. */
+  table: TableTheme;
 };
 
 export const darkTheme: AppTheme = {
-  appBg: "#0A0A0C",
-  surface: "#141418",
-  surfaceAlt: "#1C1C21",
-  border: "#2A2A31",
-  sectionSurface: "#101014",
-  headerSurface: "#0A0A0C",
+  appBg: "#120705",
+  surface: "#1D130F",
+  surfaceAlt: "#271B16",
+  border: "#3B2C25",
+  sectionSurface: "#170D0A",
+  headerSurface: "#140906",
   brandTint: "rgba(97, 7, 0, 0.28)",
-  textPrimary: "#FAFAFA",
-  textSecondary: "#A8A8B0",
-  textMuted: "#6E6E78",
-  textSubtle: "#4A4A52",
-  iconGlyph: "#D4D4D8",
-  bannerText: "#FAFAFA",
+  textPrimary: "#F6EFE8",
+  textSecondary: "#B7A89E",
+  textMuted: "#7E6F66",
+  textSubtle: "#55473F",
+  iconGlyph: "#DED3C9",
+  bannerText: "#F6EFE8",
   chipYourTurn: { bg: "#0a2210", border: "#14532d", text: "#86efac" },
   chipPenalty: { bg: "#2A0905", border: "#7A1F12", text: "#F5A8A0" },
   chipShape: { bg: "#0c1828", border: "#1e3a5f", text: "#93c5fd" },
-  chipCpu: { bg: "#1C1C21", border: "#2A2A31", text: "#A8A8B0" },
+  chipCpu: { bg: "#271B16", border: "#3B2C25", text: "#B7A89E" },
   success: "#34d399",
   danger: "#F87171",
   activeBorder: "#5C5C68",
@@ -114,21 +178,22 @@ export const darkTheme: AppTheme = {
     shadowRadius: 12,
     elevation: 6,
   },
+  table: darkTable,
 };
 
 export const lightTheme: AppTheme = {
-  appBg: "#FFFFFF",
+  appBg: "#FAF5EE",
   surface: "#FFFFFF",
-  surfaceAlt: "#EDEBE8",
-  border: "#E0DCD5",
+  surfaceAlt: "#EFE7DC",
+  border: "#E2D7C8",
   sectionSurface: "#FFFFFF",
   headerSurface: "#FFFFFF",
   brandTint: "rgba(97, 7, 0, 0.08)",
-  textPrimary: "#1A1A1A",
-  textSecondary: "#52525B",
-  textMuted: "#71717A",
-  textSubtle: "#A8A29E",
-  iconGlyph: "#3F3F46",
+  textPrimary: "#241611",
+  textSecondary: "#5C4C43",
+  textMuted: "#7E6E64",
+  textSubtle: "#AC9C8F",
+  iconGlyph: "#4A392F",
   bannerText: "#1A1A1A",
   chipYourTurn: { bg: "#ecfdf5", border: "#6ee7b7", text: "#047857" },
   chipPenalty: { bg: "#FBE9E6", border: "#D9978F", text: "#610700" },
@@ -153,4 +218,5 @@ export const lightTheme: AppTheme = {
     shadowRadius: 8,
     elevation: 2,
   },
+  table: lightTable,
 };

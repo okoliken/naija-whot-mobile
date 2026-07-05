@@ -10,24 +10,38 @@ type FeatherName = ComponentProps<typeof Feather>["name"];
 type IconButtonProps = {
   name: FeatherName;
   onPress?: () => void;
+  /** "panel" (default) sits on themed surfaces; "felt" is a quiet ghost
+   *  control for the card-table screens. */
+  tone?: "panel" | "felt";
 };
 
-export function IconButton({ name, onPress }: IconButtonProps) {
+export function IconButton({ name, onPress, tone = "panel" }: IconButtonProps) {
   const theme = useAppTheme();
+  const onFelt = tone === "felt";
   return (
     <Pressable
       onPress={() => {
         if (onPress) hapticsImpactLight();
         onPress?.();
       }}
-      className="size-11 items-center justify-center rounded-2xl border active:opacity-90"
-      style={{
-        borderColor: theme.border,
-        backgroundColor: theme.surfaceAlt,
-        ...theme.panelLiftSubtle,
-      }}
+      hitSlop={6}
+      className="size-10 items-center justify-center rounded-full active:opacity-70"
+      style={
+        onFelt
+          ? { backgroundColor: theme.table.ghostBg }
+          : {
+              borderWidth: 1,
+              borderColor: theme.border,
+              backgroundColor: theme.surfaceAlt,
+              ...theme.panelLiftSubtle,
+            }
+      }
     >
-      <Feather name={name} size={18} color={theme.iconGlyph} />
+      <Feather
+        name={name}
+        size={17}
+        color={onFelt ? theme.table.textDim : theme.iconGlyph}
+      />
     </Pressable>
   );
 }

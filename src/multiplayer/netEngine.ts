@@ -61,6 +61,7 @@ export function createInitialNetState(): NetGameState {
   return {
     deck,
     topCard,
+    discard: [],
     hostHand,
     guestHand,
     turn: "host",
@@ -215,6 +216,8 @@ export function applyPlay(
   next = {
     ...next,
     topCard: card,
+    // The card we just covered joins the pile that refills a dry market.
+    discard: [...state.discard, state.topCard],
     requestedShape: nextRequestedShape,
     awaitingShapeChoice: false,
     turn: winner ? state.turn : nextTurn,
@@ -234,8 +237,18 @@ export function applyDraw(state: NetGameState, actor: Seat): TransitionResult {
 
   const drawCount = state.pendingPick > 0 ? state.pendingPick : 1;
 
-  if (state.deck.length < drawCount) {
-    // Market dry — settle by hand count.
+  // Market dry: reshuffle the buried pile back into the market and keep
+  // playing. (The optimistic local shuffle order differs from the
+  // transaction's, but the server snapshot at the same tick wins.)
+  let deck = state.deck;
+  let discard = state.discard;
+  if (deck.length < drawCount && discard.length > 0) {
+    deck = deck.concat(shuffleInPlace([...discard]));
+    discard = [];
+  }
+
+  if (deck.length < drawCount) {
+    // Nothing left to recycle either — settle by hand count.
     const winner = checkExhaustionWinner(state);
     return bumpTick(
       {
@@ -247,8 +260,8 @@ export function applyDraw(state: NetGameState, actor: Seat): TransitionResult {
     );
   }
 
-  const drawn = state.deck.slice(0, drawCount);
-  const remainingDeck = state.deck.slice(drawCount);
+  const drawn = deck.slice(0, drawCount);
+  const remainingDeck = deck.slice(drawCount);
   const newHand = handOf(state, actor).concat(drawn);
 
   const next = withHand(state, actor, newHand);
@@ -257,6 +270,7 @@ export function applyDraw(state: NetGameState, actor: Seat): TransitionResult {
     {
       ...next,
       deck: remainingDeck,
+      discard,
       pendingPick: 0,
       pendingPenalty: null,
       turn: opponent(actor),

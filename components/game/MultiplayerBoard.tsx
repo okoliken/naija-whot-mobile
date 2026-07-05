@@ -1,52 +1,55 @@
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Text, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { HeaderBar } from "../components/game/board/HeaderBar";
-import { OpponentSection } from "../components/game/board/OpponentSection";
-import { PlayerSection } from "../components/game/board/PlayerSection";
-import { TableSection } from "../components/game/board/TableSection";
-import { CardFlyOverlay } from "../components/game/cards/CardFlyOverlay";
-import { ControlCenterModal } from "../components/game/modals/ControlCenterModal";
-import { ShapePickerModal } from "../components/game/modals/ShapePickerModal";
-import { WinModal, type RoundResult } from "../components/game/modals/WinModal";
-import { Font } from "../components/theme/fonts";
-import { useAppTheme } from "../components/theme/ThemeContext";
-import { Banner } from "../components/ui/Banner";
 import { gameShapes, SHAPE_LABELS } from "@/src/game/gameStore";
 import type { Card, Player } from "@/src/game/types";
-import { clearLastRoom, setLastRoom } from "@/src/platform/storage/lastRoom";
-import type { Seat } from "@/src/room/types";
 import { useNetworkedGame } from "@/src/multiplayer/useNetworkedGame";
+import { clearLastRoom, setLastRoom } from "@/src/platform/storage/lastRoom";
+import { recordRound } from "@/src/platform/storage/stats";
+import type { Seat } from "@/src/room/types";
+import { HeaderBar } from "./board/HeaderBar";
+import { OpponentSection } from "./board/OpponentSection";
+import { PlayerSection } from "./board/PlayerSection";
+import { TableSection } from "./board/TableSection";
+import { CardFlyOverlay } from "./cards/CardFlyOverlay";
+import { ControlCenterModal } from "./modals/ControlCenterModal";
+import { HowToPlayModal } from "./modals/HowToPlayModal";
+import { ShapePickerModal } from "./modals/ShapePickerModal";
+import { WinModal, type RoundResult } from "./modals/WinModal";
+import { Font } from "../theme/fonts";
+import { useAppTheme } from "../theme/ThemeContext";
+import { Banner } from "../ui/Banner";
 
-export default function MultiplayerGameScreen() {
-  const params = useLocalSearchParams<{ code?: string; seat?: string }>();
-  const code = typeof params.code === "string" ? params.code : null;
-  const seat: Seat | null =
-    params.seat === "host" || params.seat === "guest" ? params.seat : null;
+type Props = {
+  code: string;
+  seat: Seat;
+  /** Called when the player leaves the room (back, or the room ends). The
+   *  parent swaps the table back to the local game — no navigation. */
+  onLeave: () => void;
+};
 
+/**
+ * The networked game, rendered in place on the one table screen. The room
+ * lifecycle stays inside this component; leaving hands control back to the
+ * parent instead of pushing/popping routes.
+ */
+export function MultiplayerBoard({ code, seat, onLeave }: Props) {
   const insets = useSafeAreaInsets();
   const theme = useAppTheme();
   const controlCenterRef = useRef<BottomSheetModal>(null);
+  const howToPlayRef = useRef<BottomSheetModal>(null);
 
-  // Hooks must be unconditional. Guard inside.
-  const guarded = code && seat ? { code, seat } : { code: "_invalid", seat: "host" as Seat };
-  const game = useNetworkedGame(guarded);
+  const game = useNetworkedGame({ code, seat });
 
   // Game-history rendering uses Player ('human'|'computer'), so map seats
   // through `me`/`opp` to stay compatible with the existing components.
   const me: Player = "human";
   const opp: Player = "computer";
-
-  const handleBack = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace("/");
-  };
 
   const handleEndGame = () => {
     Alert.alert(
@@ -59,7 +62,7 @@ export default function MultiplayerGameScreen() {
           style: "destructive",
           onPress: () => {
             // Fire-and-forget; the room snapshot listener will flip
-            // `roomStatus` to 'ended' on both clients and we'll route out.
+            // `roomStatus` to 'ended' on both clients and we'll leave.
             void game.endGame();
           },
         },
@@ -68,45 +71,43 @@ export default function MultiplayerGameScreen() {
   };
 
   // When the host deletes the room, both clients see `roomStatus === 'ended'`.
-  // Host already pressed through the confirm dialog — just navigate.
-  // Guest needs an explanation before being routed out.
+  // Host already pressed through the confirm dialog — just leave.
+  // Guest needs an explanation before being handed back to the table.
   const endedNoticeShownRef = useRef(false);
   useEffect(() => {
     if (game.roomStatus !== "ended" || endedNoticeShownRef.current) return;
     endedNoticeShownRef.current = true;
     void clearLastRoom();
-    const goBack = () => {
-      if (router.canGoBack()) router.back();
-      else router.replace("/");
-    };
     if (seat === "host") {
-      goBack();
+      onLeave();
       return;
     }
     Alert.alert(
       "Game ended",
-      "The host closed the room. You can start a new game from the lobby.",
-      [{ text: "OK", onPress: goBack }],
+      "The host closed the room. You can start a new game from the menu.",
+      [{ text: "OK", onPress: onLeave }],
     );
-  }, [game.roomStatus, seat]);
+  }, [game.roomStatus, seat, onLeave]);
 
-  // Remember the active room so the lobby can offer a "Rejoin" tap after
+  // Remember the active room so the menu can offer a "Rejoin" tap after
   // a soft leave. Recorded once per (code, seat) combination.
   useEffect(() => {
-    if (!code || !seat) return;
     void setLastRoom({ code, seat });
   }, [code, seat]);
 
-  // History (per-device, ephemeral). Resets on screen unmount.
+  // History (per-device, ephemeral). Resets on unmount.
   const roundCountRef = useRef(1);
   const [history, setHistory] = useState<RoundResult[]>([]);
-  const prevWinnerRef = useRef<Seat | null>(null);
+  // Track the round we've already recorded so a flickering synced winner
+  // (clear -> re-set within the same round) can't append a duplicate entry.
+  const recordedRoundRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!game.state) return;
     const winnerSeat = game.state.winner;
-    if (winnerSeat && winnerSeat !== prevWinnerRef.current) {
-      prevWinnerRef.current = winnerSeat;
+    if (winnerSeat && recordedRoundRef.current !== roundCountRef.current) {
+      recordedRoundRef.current = roundCountRef.current;
+      void recordRound(winnerSeat === seat ? "win" : "loss");
       const myCount = game.myHand.length;
       const oppCount = game.opponentHandSize;
       setHistory((h) => [
@@ -119,7 +120,6 @@ export default function MultiplayerGameScreen() {
         },
       ]);
     }
-    if (!winnerSeat) prevWinnerRef.current = null;
   }, [game.state, game.myHand.length, game.opponentHandSize, seat]);
 
   // Card-fly animation on top-card change. Compute flyOrigin from lastActor.
@@ -150,20 +150,6 @@ export default function MultiplayerGameScreen() {
 
   const opponentCount = game.opponentHandSize;
 
-  // Bail early if route params are missing.
-  if (!code || !seat) {
-    return (
-      <SafeAreaView
-        edges={["top", "left", "right"]}
-        style={{ flex: 1, backgroundColor: theme.appBg, padding: 24 }}
-      >
-        <Text style={{ color: theme.textPrimary, fontFamily: Font.ui.semi }}>
-          Missing room parameters. Go back to the lobby.
-        </Text>
-      </SafeAreaView>
-    );
-  }
-
   if (!game.state) {
     const loadingLabel =
       game.roomStatus === "connecting"
@@ -171,28 +157,20 @@ export default function MultiplayerGameScreen() {
         : seat === "host"
           ? "Dealing cards…"
           : "Waiting for host to deal…";
-    const statusChip =
-      game.roomStatus === "connecting"
-        ? "Connecting…"
-        : seat === "host"
-          ? "Setting up table…"
-          : "Waiting for host…";
 
     return (
-      <SafeAreaView
-        edges={["top", "left", "right"]}
-        style={{ flex: 1, backgroundColor: theme.appBg }}
-      >
+      <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1 }}>
         <ConnectionBanner
           connectionError={game.connectionError}
           writeError={game.lastError}
           opponentAway={false}
         />
-        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16, gap: 16 }}>
+        <View style={{ flex: 1 }}>
           <HeaderBar
             onRestart={handleRestart}
             onSettings={() => controlCenterRef.current?.present()}
-            onBack={handleBack}
+            onBack={onLeave}
+            onHelp={() => howToPlayRef.current?.present()}
             onEndGame={seat === "host" ? handleEndGame : undefined}
           />
           <View
@@ -204,10 +182,10 @@ export default function MultiplayerGameScreen() {
               paddingHorizontal: 24,
             }}
           >
-            <ActivityIndicator color={theme.textSecondary} />
+            <ActivityIndicator color={theme.table.textDim} />
             <Text
               style={{
-                color: theme.textSecondary,
+                color: theme.table.textDim,
                 fontFamily: Font.ui.regular,
                 fontSize: 14,
                 textAlign: "center",
@@ -217,6 +195,7 @@ export default function MultiplayerGameScreen() {
             </Text>
           </View>
         </View>
+        <HowToPlayModal ref={howToPlayRef} />
         <ControlCenterModal
           ref={controlCenterRef}
           history={history}
@@ -233,72 +212,62 @@ export default function MultiplayerGameScreen() {
       : opp
     : null;
   const turnForUi: Player = state.turn === seat ? me : opp;
-  const needLabel = state.requestedShape ? SHAPE_LABELS[state.requestedShape] : "Any";
+  const needLabel = state.requestedShape
+    ? SHAPE_LABELS[state.requestedShape]
+    : "Any";
   const isMyTurnUi = game.isMyTurn;
   // Engine writes subject-less messages with {ACTOR} / {WINNER} tokens so the
   // same Firestore doc renders correctly for both seats. Substitute here.
-  const renderedMessage = (state.message ?? "")
+  const messageText = (state.message ?? "")
     .replace("{ACTOR}", state.lastActor === seat ? "You" : "Opponent")
     .replace("{WINNER}", state.winner === seat ? "You" : "Opponent");
-  // Write errors are surfaced by <ConnectionBanner /> at the top of the
-  // screen, so we leave the per-move message as engine-driven flavor text.
-  const messageText = renderedMessage;
 
   return (
-    <SafeAreaView
-      edges={["top", "left", "right"]}
-      style={{ flex: 1, backgroundColor: theme.appBg }}
-    >
-      <ConnectionBanner
-        connectionError={game.connectionError}
-        writeError={game.lastError}
-        opponentAway={
-          game.opponentPresent === false && game.roomStatus === "live"
-        }
-      />
-      <ScrollView
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 16,
-          paddingBottom: insets.bottom + 32,
-          gap: 16,
-        }}
-      >
-        <HeaderBar
-          onRestart={handleRestart}
-          onSettings={() => controlCenterRef.current?.present()}
-          onBack={handleBack}
-          onEndGame={seat === "host" ? handleEndGame : undefined}
+    <>
+      <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1 }}>
+        <ConnectionBanner
+          connectionError={game.connectionError}
+          writeError={game.lastError}
+          opponentAway={
+            game.opponentPresent === false && game.roomStatus === "live"
+          }
         />
+        <View style={{ flex: 1, paddingBottom: insets.bottom + 4 }}>
+          <HeaderBar
+            onRestart={handleRestart}
+            onSettings={() => controlCenterRef.current?.present()}
+            onBack={onLeave}
+            onHelp={() => howToPlayRef.current?.present()}
+            onEndGame={seat === "host" ? handleEndGame : undefined}
+          />
 
-        <OpponentSection
-          turn={turnForUi}
-          count={opponentCount}
-          label="Opponent"
-        />
+          <OpponentSection
+            turn={turnForUi}
+            count={opponentCount}
+            label="Opponent"
+          />
 
-        <TableSection
-          deckCount={state.deck.length}
-          topCard={state.topCard}
-          isHumanTurn={isMyTurnUi}
-          needLabel={needLabel}
-          pendingPick={state.pendingPick}
-          skipsLabel="0"
-          onDraw={game.drawCard}
-        />
+          <TableSection
+            deckCount={state.deck.length}
+            topCard={state.topCard}
+            isHumanTurn={isMyTurnUi}
+            needLabel={needLabel}
+            pendingPick={state.pendingPick}
+            skipsLabel="0"
+            onDraw={game.drawCard}
+          />
 
-        <PlayerSection
-          humanHand={game.myHand}
-          topCard={state.topCard}
-          requestedShape={state.requestedShape}
-          pendingPick={state.pendingPick}
-          isHumanTurn={isMyTurnUi}
-          message={state.awaitingShapeChoice ? "" : messageText}
-          onPlayCard={game.playCard}
-        />
-      </ScrollView>
+          <PlayerSection
+            humanHand={game.myHand}
+            topCard={state.topCard}
+            requestedShape={state.requestedShape}
+            pendingPick={state.pendingPick}
+            isHumanTurn={isMyTurnUi}
+            message={state.awaitingShapeChoice ? "" : messageText}
+            onPlayCard={game.playCard}
+          />
+        </View>
+      </SafeAreaView>
 
       <CardFlyOverlay card={flyCard} origin={flyOrigin} />
 
@@ -307,15 +276,23 @@ export default function MultiplayerGameScreen() {
       ) : null}
 
       {winnerForUi ? (
-        <WinModal winner={winnerForUi} history={history} onRestart={handleRestart} />
+        <WinModal
+          winner={winnerForUi}
+          history={history}
+          onRestart={handleRestart}
+          opponentLabel="Opponent"
+          canRestart={seat === "host"}
+        />
       ) : null}
+
+      <HowToPlayModal ref={howToPlayRef} />
 
       <ControlCenterModal
         ref={controlCenterRef}
         history={history}
         opponentLabel="Opponent"
       />
-    </SafeAreaView>
+    </>
   );
 }
 
@@ -334,7 +311,9 @@ function ConnectionBanner({
   writeError: string | null;
   opponentAway: boolean;
 }) {
-  const [dismissedWriteError, setDismissedWriteError] = useState<string | null>(null);
+  const [dismissedWriteError, setDismissedWriteError] = useState<string | null>(
+    null,
+  );
 
   // A new writeError automatically shows itself because it won't match
   // the previously-dismissed value — no reset effect needed.

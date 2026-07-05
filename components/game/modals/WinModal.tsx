@@ -2,6 +2,7 @@ import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from "@g
 import { useLayoutEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { hapticsImpactLight } from "@/src/platform/haptics";
+import { playSound } from "@/src/platform/sound";
 import { WinConfetti } from "../effects/WinConfetti";
 import { BRAND, ON_BRAND } from "../../theme/theme";
 import { useAppTheme } from "../../theme/ThemeContext";
@@ -18,16 +19,28 @@ type Props = {
   winner: "human" | "computer";
   history: RoundResult[];
   onRestart: () => void;
+  /** Display name for the opposing seat. Defaults to "CPU" for single-player. */
+  opponentLabel?: string;
+  /** False for the multiplayer guest — only the host can deal, so show a
+   *  waiting line instead of a dead button. */
+  canRestart?: boolean;
 };
 
 /** Mounted only while `winner` is set so BottomSheetModal presents reliably on CPU wins. */
-export function WinModal({ winner, history, onRestart }: Props) {
+export function WinModal({
+  winner,
+  history,
+  onRestart,
+  opponentLabel = "CPU",
+  canRestart = true,
+}: Props) {
   const theme = useAppTheme();
   const sheetRef = useRef<BottomSheetModal>(null);
   const [sheetBody, setSheetBody] = useState({ width: 0, height: 0 });
 
   useLayoutEffect(() => {
     const sheet = sheetRef.current;
+    playSound(winner === "human" ? "win" : "lose");
     const t = setTimeout(() => {
       sheetRef.current?.present();
     }, 50);
@@ -109,23 +122,39 @@ export function WinModal({ winner, history, onRestart }: Props) {
                 {history[history.length - 1]?.computerCards ?? 0}
               </Text>
               <Text style={[FontStyle.ui.regular, { fontSize: 11, color: theme.textMuted }]}>
-                CPU cards
+                {opponentLabel} cards
               </Text>
             </View>
           </View>
         )}
 
         {/* Play again */}
-        <Pressable
-          onPress={() => {
-            hapticsImpactLight();
-            onRestart();
-          }}
-          className="mb-6 items-center rounded-2xl py-4 active:opacity-80"
-          style={{ backgroundColor: BRAND }}
-        >
-          <Text style={[FontStyle.ui.bold, { fontSize: 14, letterSpacing: 2.8, color: ON_BRAND }]}>PLAY AGAIN</Text>
-        </Pressable>
+        {canRestart ? (
+          <Pressable
+            onPress={() => {
+              hapticsImpactLight();
+              onRestart();
+            }}
+            className="mb-6 items-center rounded-2xl py-4 active:opacity-80"
+            style={{ backgroundColor: BRAND }}
+          >
+            <Text style={[FontStyle.ui.bold, { fontSize: 14, letterSpacing: 2.8, color: ON_BRAND }]}>PLAY AGAIN</Text>
+          </Pressable>
+        ) : (
+          <Text
+            style={[
+              FontStyle.ui.regular,
+              {
+                marginBottom: 24,
+                textAlign: "center",
+                fontSize: 13,
+                color: theme.textMuted,
+              },
+            ]}
+          >
+            Waiting for the host to start the next round…
+          </Text>
+        )}
 
         {/* History */}
         {history.length > 1 && (
@@ -147,7 +176,7 @@ export function WinModal({ winner, history, onRestart }: Props) {
                       { fontSize: 12, color: r.winner === "human" ? theme.success : theme.textMuted },
                     ]}
                   >
-                    {r.winner === "human" ? "You won" : "CPU won"}
+                    {r.winner === "human" ? "You won" : `${opponentLabel} won`}
                   </Text>
                   <Text style={[FontStyle.ui.regular, { fontSize: 12, color: theme.textMuted }]}>
                     {r.humanCards} – {r.computerCards}

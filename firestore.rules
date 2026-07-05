@@ -3,7 +3,8 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Rooms are 4-char codes. Anyone authed can read so a joiner can
-    // check existence. Writes are gated to room participants only.
+    // check existence. Writes are gated to room participants only, and
+    // each write path may only touch the fields that flow actually uses.
     match /rooms/{code} {
       function isSignedIn() {
         return request.auth != null;
@@ -11,6 +12,12 @@ service cloud.firestore {
       function isParticipant(data) {
         return request.auth.uid == data.hostId
             || request.auth.uid == data.guestId;
+      }
+      function changedKeys() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+      function myPresenceField(data) {
+        return request.auth.uid == data.hostId ? 'hostPresent' : 'guestPresent';
       }
 
       allow read: if isSignedIn();
@@ -22,21 +29,21 @@ service cloud.firestore {
         && request.resource.data.code == code
         && request.resource.data.expiresAt is timestamp;
 
-      // Update paths, each gated separately:
-      //  1. Guest joining: anyone signed-in may claim an empty guest seat
-      //     by writing their own uid (and only their own uid).
-      //  2. Existing participant making an update that keeps guestId as-is.
-      //  3. Existing participant clearing the guest seat (leave).
-      // In all cases hostId is immutable.
+      // Update paths, each limited to exactly the fields that flow writes
+      // (hostId, code, createdAt, expiresAt are therefore immutable):
+      //  1. Guest joining: claim an empty guest seat with your own uid.
+      //  2. Participant toggling their own presence flag.
+      //  3. Participant clearing the guest seat (leave).
       allow update: if isSignedIn()
-        && request.resource.data.hostId == resource.data.hostId
         && (
           (resource.data.guestId == null
-            && request.resource.data.guestId == request.auth.uid)
+            && request.resource.data.guestId == request.auth.uid
+            && changedKeys().hasOnly(['guestId', 'guestPresent']))
           || (isParticipant(resource.data)
-            && request.resource.data.guestId == resource.data.guestId)
+            && changedKeys().hasOnly([myPresenceField(resource.data)]))
           || (isParticipant(resource.data)
-            && request.resource.data.guestId == null)
+            && request.resource.data.guestId == null
+            && changedKeys().hasOnly(['guestId', 'guestPresent']))
         );
 
       // Delete: only host can wipe the room.
@@ -63,14 +70,17 @@ service cloud.firestore {
           && request.auth.uid == room().hostId
           && request.resource.data.turn in ['host', 'guest'];
 
-        // Updates must come from whoever's turn it currently is. After
-        // the round ends (winner != null), either participant may write
-        // (to start a new round).
+        // Moves must come from whoever's turn it currently is, and must
+        // advance the monotonic tick (no replaying or rewinding state).
+        // After the round ends (winner != null) only the host may write —
+        // that's the "deal a new round" reset, which starts back at tick 0.
         allow update: if isSignedIn()
           && isParticipant(room())
           && (
-            resource.data.winner != null
-            || resource.data.turn == callerSeat()
+            (resource.data.winner != null
+              && request.auth.uid == room().hostId)
+            || (resource.data.turn == callerSeat()
+              && request.resource.data.tick > resource.data.tick)
           );
       }
 

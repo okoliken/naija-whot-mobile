@@ -38,6 +38,10 @@ function isOutOfTurnError(err: unknown): boolean {
 
 export class WhotEngine {
   private engine: EngineGame
+  // Ids must survive re-reads: the UI keys list items and detects "fresh deal"
+  // by id, so a card keeps one id for its whole life, not one per snapshot.
+  private cardIds = new WeakMap<EngineCard, string>()
+  private nextCardId = 0
 
   constructor(noOfDecks = 1, noOfPlayers = 2) {
     this.engine = new Game({ noOfDecks, noOfPlayers }) as unknown as EngineGame
@@ -59,7 +63,7 @@ export class WhotEngine {
   }
 
   getHand(index: number): CardModel[] {
-    return this.engine.players[index].hand().map((card, cardIndex) => this.toCardModel(card, cardIndex))
+    return this.engine.players[index].hand().map((card) => this.toCardModel(card))
   }
 
   play(index: number, handIndex: number, iNeed?: CardShape): CardModel {
@@ -82,7 +86,7 @@ export class WhotEngine {
     try {
       const cards = this.engine.players[index]
         .pick()
-        .map((card, cardIndex) => this.toCardModel(card, cardIndex))
+        .map((card) => this.toCardModel(card))
       return { ok: true, cards }
     } catch (err) {
       if (err instanceof Error && err.name === 'OutOfRangeError') {
@@ -96,9 +100,14 @@ export class WhotEngine {
     this.engine.turn.switch(skip)
   }
 
-  private toCardModel(card: EngineCard, handIndex?: number): CardModel {
+  private toCardModel(card: EngineCard): CardModel {
+    let id = this.cardIds.get(card)
+    if (!id) {
+      id = `${card.shape}-${card.value}-${this.nextCardId++}`
+      this.cardIds.set(card, id)
+    }
     return {
-      id: `${card.shape}-${card.value}-${handIndex ?? 'p'}-${Math.random().toString(16).slice(2, 8)}`,
+      id,
       value: card.value,
       shape: card.shape,
       move: this.mapMove(card),

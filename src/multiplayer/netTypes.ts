@@ -14,6 +14,9 @@ export type NetGameState = {
   deck: Card[];
   /** Top of the discard pile. Null only between rounds. */
   topCard: Card | null;
+  /** Cards buried under the top card. Reshuffled into the market when it
+   *  runs dry, so the round keeps going instead of ending abruptly. */
+  discard: Card[];
   hostHand: Card[];
   guestHand: Card[];
   turn: Seat;

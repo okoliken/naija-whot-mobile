@@ -24,7 +24,7 @@ type CanPlayFn = (
 
 const SHAPES: CardShape[] = ['Circle', 'Triangle', 'Square', 'Cross', 'Star']
 
-/**
+/**xp
  * Top-level entry point — routes to a difficulty-specific brain.
  *
  * - easy: mostly random legal play with light bias away from aggressive actions.

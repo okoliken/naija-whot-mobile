@@ -15,6 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { CardFront } from "./CardFront";
+import { playSound } from "@/src/platform/sound";
 import type { Card } from "@/src/game/gameStore";
 
 type Props = {
@@ -22,17 +23,15 @@ type Props = {
   origin: "human" | "computer";
 };
 
-// Aligns the fly card with the table top card's landing spot.
-// TableSection container is max 320px wide, centered. The top card sits
-// `right-5` (20px) inside it, is 116px wide, and is rotated 3deg.
+// Aligns the fly card with the discard pile's landing spot. The table row
+// is centered: deck and discard are 116px cards with a 32px gap, so the
+// discard's center sits (gap/2 + width/2) right of screen center.
 const TABLE_CARD_WIDTH = 116;
-const TABLE_CARD_RIGHT_INSET = 20;
-const TABLE_CONTAINER_MAX = 320;
-const TABLE_CONTAINER_HORIZONTAL_PADDING = 32;
+const TABLE_PILE_GAP = 32;
 const TABLE_CARD_ROTATION = 3;
 
 export function CardFlyOverlay({ card, origin }: Props) {
-  const { height, width } = useWindowDimensions();
+  const { height } = useWindowDimensions();
   const [displayCard, setDisplayCard] = useState<Card | null>(null);
   const prevId = useRef<string | null>(null);
 
@@ -46,15 +45,8 @@ export function CardFlyOverlay({ card, origin }: Props) {
     if (!card || card.id === prevId.current) return;
     prevId.current = card.id;
 
-    // Compute the landing translateX so the overlay aligns with the
-    // table card, which is offset right of screen-center.
-    const containerWidth = Math.min(
-      TABLE_CONTAINER_MAX,
-      width - TABLE_CONTAINER_HORIZONTAL_PADDING,
-    );
-    const finalX =
-      containerWidth / 2 -
-      (TABLE_CARD_RIGHT_INSET + TABLE_CARD_WIDTH / 2);
+    // Landing translateX: the discard pile sits right of screen-center.
+    const finalX = TABLE_PILE_GAP / 2 + TABLE_CARD_WIDTH / 2;
 
     // Starting position: hand area (human) or opponent area (computer)
     const fromY = origin === "human" ? height * 0.33 : -height * 0.23;
@@ -68,6 +60,7 @@ export function CardFlyOverlay({ card, origin }: Props) {
     op.value = 0;
 
     setDisplayCard(card);
+    playSound("play");
 
     // Springs deliberately overlap with the fade-out tail (~450ms) so
     // the card still has a touch of residual motion as it dissolves.
@@ -90,7 +83,7 @@ export function CardFlyOverlay({ card, origin }: Props) {
         }),
       ),
     );
-  }, [card, origin, height, width, ty, tx, rot, sc, op]);
+  }, [card, origin, height, ty, tx, rot, sc, op]);
 
   useEffect(() => {
     return () => {

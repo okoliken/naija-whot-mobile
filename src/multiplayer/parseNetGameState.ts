@@ -17,6 +17,9 @@ export function parseNetGameState(raw: unknown): NetGameState | null {
   return {
     deck: data.deck,
     topCard: data.topCard ?? null,
+    // Missing on rooms dealt before pile tracking existed — those rounds
+    // just can't recycle, same as the old behavior.
+    discard: Array.isArray(data.discard) ? data.discard : [],
     hostHand: data.hostHand,
     guestHand: data.guestHand,
     turn: data.turn,

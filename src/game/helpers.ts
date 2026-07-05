@@ -157,6 +157,7 @@ export function createInitialRoundState(): RoundSnapshot {
     winner: null,
     statusLine: "",
     aiTurnTick: 0,
+    lastActor: null,
   };
   snapshot.statusLine = buildStatusLine(snapshot);
   return snapshot;
